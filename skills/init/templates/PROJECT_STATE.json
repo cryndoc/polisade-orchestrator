@@ -1,0 +1,31 @@
+{
+  "pdlcVersion": "2.20.8",
+  "schemaVersion": 1,
+  "lastUpdated": null,
+  "project": {
+    "name": "",
+    "description": "",
+    "version": "0.1.0",
+    "status": "active"
+  },
+  "settings": {
+    "gitBranching": true,
+    "reviewer": {
+      "mode": "auto",
+      "cli": "auto"
+    },
+    "workspaceMode": "worktree",
+    "vcsProvider": "github"
+  },
+  "architecture": {
+    "activeADRs": [],
+    "deprecatedADRs": [],
+    "lastArchReview": null
+  },
+  "artifacts": {},
+  "waitingForPM": [],
+  "blocked": [],
+  "readyToWork": [],
+  "inProgress": [],
+  "inReview": []
+}
