@@ -1,0 +1,18 @@
+{
+  "name": "pdlc-marketplace",
+  "owner": {
+    "name": "Evgeny"
+  },
+  "metadata": {
+    "description": "Polisade Orchestrator — autonomous development framework by Polisade (technical id: pdlc)",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pdlc",
+      "source": "./",
+      "description": "Polisade Orchestrator — autonomous development framework: implement → test → PR → review → merge",
+      "version": "2.20.7"
+    }
+  ]
+}
