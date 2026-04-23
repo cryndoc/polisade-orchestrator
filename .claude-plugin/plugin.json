@@ -1,0 +1,11 @@
+{
+  "name": "pdlc",
+  "version": "2.20.6",
+  "description": "Polisade Orchestrator — autonomous development framework by Polisade. Claude operates as a full dev team: implement → test → PR → review → merge. (Technical id: pdlc)",
+  "author": {
+    "name": "Evgeny"
+  },
+  "repository": "https://github.com/cryndoc/polisade-orchestrator",
+  "license": "Apache-2.0",
+  "keywords": ["polisade", "polisade-orchestrator", "pdlc", "autonomous", "development", "project-management", "ci-cd"]
+}
