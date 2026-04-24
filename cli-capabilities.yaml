@@ -1,0 +1,170 @@
+schema: 1
+
+# ---------- Targets: capability matrix per CLI -------------------------------
+#
+# Each target declares the features its runtime supports. Consumers
+# (pdlc_cli_caps, pdlc_lint_skills, convert.py --strict) use this matrix
+# together with per-skill `cli_requires` to decide whether a skill needs
+# an overlay for a given target.
+#
+# `enforced: false` means issues for this target are reported as warnings
+# instead of errors — used for GigaCode until its real capability set is
+# verified.
+
+targets:
+  claude-code:
+    task_tool: true
+    codex_cli: optional
+    mcp: true
+    webfetch: true
+    permission_layer: true
+    argument_syntax: "$ARGUMENTS"
+    context_file: CLAUDE.md
+    enforced: true
+    # OPS-022: canonical argv for non-interactive self-review invocation.
+    non_interactive_args: ["-p"]
+
+  qwen:
+    task_tool: true
+    codex_cli: false
+    mcp: true
+    webfetch: true
+    permission_layer: false
+    argument_syntax: "{{args}}"
+    context_file: QWEN.md
+    enforced: true
+    # OPS-022: Qwen-Code shares Gemini-CLI upstream with GigaCode, so the
+    # same --allowed-tools=run_shell_command bypass is needed for shell.
+    non_interactive_args: ["--allowed-tools=run_shell_command", "-p"]
+
+  gigacode:
+    # task_tool / mcp / webfetch verified via OPS-018 follow-up probe on
+    # 2026-04-23 (gigacode 0.10.0): capability self-report + `gigacode mcp`
+    # subcommand present. Context window observed: 200_000 tokens.
+    task_tool: true
+    codex_cli: false
+    mcp: true
+    webfetch: true
+    permission_layer: false
+    argument_syntax: "{{args}}"
+    context_file: GIGACODE.md
+    # `enforced: false` retained: policy knob (warnings vs errors); flipping
+    # is a separate decision once downstream surfaces are ready.
+    enforced: false
+    # OPS-018: --allowed-tools=run_shell_command is the canonical recipe —
+    # other flags (--approval-mode=auto-edit) do NOT unblock shell.
+    non_interactive_args: ["--allowed-tools=run_shell_command", "-p"]
+
+# ---------- Capabilities: what each capability means ------------------------
+#
+# `markers` are literal substrings that, when found in a skill body, imply
+# the skill uses this capability. The lint uses them to verify that every
+# skill declares its dependencies in `cli_requires`.
+
+capabilities:
+  task_tool:
+    markers: ["subagent_type:", "subagent_type="]
+    overlay_required_when_false: true
+
+  codex_cli:
+    markers: ["which codex", "codex exec", "codex --version"]
+    overlay_required_when_false: true
+    # `fallback_allowed: true` means this capability has a runtime-resolver
+    # fallback (`resolve_reviewer` returns mode=self when codex isn't on
+    # PATH). This is a RUNTIME hint, not a BUILD-time exemption: a skill
+    # declaring `fallback: self` still needs an overlay for targets where
+    # the cap is false, because the overlay is the canonical Qwen flow
+    # (clean-context subagent) — `fallback: self` only tells the runtime
+    # what to do if the user's environment lacks even the fallback CLI.
+    fallback_allowed: true
+    # OPS-022: canonical argv for external codex reviewer. Codex is not a
+    # plugin target, so this lives under capabilities (not targets.codex).
+    # Lint rule (d) makes this mandatory so `_codex_args()` never falls
+    # back silently to a literal.
+    non_interactive_args: ["exec", "--full-auto"]
+
+# permission_layer is represented in `targets.<cli>.permission_layer` for the
+# capability matrix, but it is NOT listed here under `capabilities:` because
+# tools/convert.py strips `.claude/settings.json` and the Claude permission
+# layer unconditionally (see convert.py:191-209 / validate.py:40). Skills
+# therefore never need to declare a dependency on `permission_layer` and we
+# don't lint for a marker mismatch.
+
+# ---------- Skills: per-skill cli_requires + optional fallback --------------
+#
+# `cli_requires` is a CSV string (same format as the skill frontmatter field)
+# so there is only one parser format across the project.
+# `fallback: self` signals that the skill has a built-in fallback path for
+# when the required CLI is absent (e.g., review falls back to self-review
+# when the external reviewer CLI is not on PATH).
+#
+# issue #107: `emit_as_skill: true` declares that this skill must be emitted
+# as a Qwen/GigaCode Agent Skill (on top of the converted slash command) so
+# the corp agent's auto-discovery can route natural-language intents to the
+# canonical /pdlc:<name> path. `intent_triggers` is the behavioural source
+# of truth — consumed by `tools/convert.py` (QWEN.md routing table) and by
+# `pdlc_lint_skills.py` (consistency check: description must reference at
+# least one trigger phrase). Keep triggers on ONE physical line (inline
+# YAML list): the flat-YAML parser in `scripts/pdlc_cli_caps.py` does not
+# support multiline block-lists.
+#
+# Deprecated aliases (OPS-017) are intentionally not listed here — their
+# frontmatter only declares `task_tool`, so coverage-lint does not require
+# an overlay for them on targets without codex_cli.
+
+skills:
+  review:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+    emit_as_skill: true
+    intent_triggers: ["review TASK", "second opinion", "check my implementation", "codex review", "self-review", "review task", "сделай ревью"]
+  review-pr:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+    emit_as_skill: true
+    intent_triggers: ["review PR", "PR review", "review pull request", "quality review", "review this pr", "сделай ревью pr"]
+  implement:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+  continue:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+  spec:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create SPEC", "write spec", "turn PRD into SPEC", "functional spec", "specification from PRD", "создай spec", "напиши спеку"]
+  design:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["design", "architecture diagrams", "doc-as-code artifacts", "C4", "ERD", "OpenAPI spec", "AsyncAPI", "event-driven", "Kafka", "message broker", "sequence diagram", "state machine", "domain glossary", "ADR"]
+  roadmap:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create PLAN", "plan from SPEC", "roadmap", "implementation plan", "milestones", "сделай план", "create roadmap"]
+  tasks:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create tasks", "generate TASKs", "break down into tasks", "декомпозиция", "tasks from PLAN", "сделай таски", "break this into tasks"]
+  reconcile-docs:
+    cli_requires: "task_tool"
+  pr:
+    emit_as_skill: true
+    intent_triggers: ["open a PR", "create pull request", "push and open PR", "submit for review", "commit and open PR", "merge PR", "review PR status", "закоммить и сделай pr", "сделай пиар", "сделай pr"]
+  feature:
+    emit_as_skill: true
+    intent_triggers: ["create a feature", "add feature brief", "new feature work", "feature request", "add FEAT", "заведи фичу", "новая фича"]
+  defect:
+    emit_as_skill: true
+    intent_triggers: ["file a bug", "report defect", "bug report", "register defect", "заведи баг", "баг-репорт", "report a bug"]
+  debt:
+    emit_as_skill: true
+    intent_triggers: ["add tech debt", "record tech debt", "technical debt", "tech debt item", "refactor tracking", "технический долг", "запиши техдолг"]
+  chore:
+    emit_as_skill: true
+    intent_triggers: ["simple task", "chore", "small task", "housekeeping", "quick task", "мелкая задача", "чора"]
+  prd:
+    emit_as_skill: true
+    intent_triggers: ["create PRD", "write product requirements", "PRD document", "product brief", "напиши PRD", "создай PRD", "requirements doc"]
+  spike:
+    emit_as_skill: true
+    intent_triggers: ["research task", "spike", "investigation", "research question", "explore a problem", "ресёрч", "спайк"]
