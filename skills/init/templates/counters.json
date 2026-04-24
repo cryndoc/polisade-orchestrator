@@ -1,0 +1,13 @@
+{
+  "PRD": 1,
+  "SPEC": 1,
+  "PLAN": 1,
+  "TASK": 1,
+  "FEAT": 1,
+  "BUG": 1,
+  "DEBT": 1,
+  "ADR": 1,
+  "CHORE": 1,
+  "SPIKE": 1,
+  "DESIGN": 1
+}
