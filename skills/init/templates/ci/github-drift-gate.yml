@@ -1,0 +1,32 @@
+# polisade drift-gate — blocking CI job (issue #205, Pipeline V2 Ф1).
+# Deterministic arch<->code check: api.md <-> code routes, ER <-> DB schema.
+#
+# Blocking contract: mark this job as REQUIRED in branch protection
+# (Settings -> Branches -> Require status checks: "drift-gate").
+# The gate cannot be bypassed by any agent-side flag; the only legal
+# suppression is a reviewable waiver artifact docs/waivers/DRIFT-WAIVER-NNN.md
+# (template: docs/templates/drift-waiver-template.md) with an expiry date.
+#
+# Non-GitHub CI (Bitbucket Pipelines, GitLab CI, Jenkins): port the single
+# command below — `python3 scripts/polisade_drift_gate.py` — as a blocking
+# step; the script is stdlib-only and needs nothing but Python 3.
+name: polisade-drift-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  drift-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Drift gate (arch <-> code)
+        run: python3 scripts/polisade_drift_gate.py --report drift-report.json
+      - name: Upload drift report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift-report.json

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & usage help
+    url: https://github.com/cryndoc/polisade-orchestrator/discussions/categories/q-a
+    about: Ask in Discussions Q&A — the issue tracker is for bugs and feature requests.
+  - name: Show and tell
+    url: https://github.com/cryndoc/polisade-orchestrator/discussions/categories/show-and-tell
+    about: Share what you built with polisade.
