@@ -1,0 +1,39 @@
+{
+  "_doc": "Config for scripts/polisade_drift_gate.py — deterministic arch<->code drift gate (blocking in CI). Full field reference: docs/config-reference.md in the Polisade Orchestrator repo. JSON has no comments, so `_doc` keys carry them; the gate ignores every key starting with `_`.",
+  "version": 1,
+  "api": {
+    "_doc": "OpenAPI paths+methods declared in design artifacts vs route declarations in code. Built-in extractors: fastapi/flask, express, nestjs, spring; `auto` runs them all. For anything else use custom_route_regex with named groups (?P<method>...) and (?P<path>...).",
+    "enabled": true,
+    "design_globs": [
+      "docs/architecture/DESIGN-*/api.md",
+      "docs/contracts/provided/*.yaml",
+      "docs/contracts/provided/*.yml"
+    ],
+    "code_extractor": "auto",
+    "code_roots": ["src", "app", "server"],
+    "code_include": ["**/*.py", "**/*.js", "**/*.ts", "**/*.java"],
+    "custom_route_regex": [],
+    "prefix_map": {},
+    "fail_on_unimplemented": true,
+    "fail_on_undocumented": true
+  },
+  "er": {
+    "_doc": "Mermaid erDiagram entities/attributes in design artifacts vs the DB schema. Built-in extractors: sql-ddl, sqlalchemy (tables only), prisma; `auto` runs them all. naming.map pins entity->table names the heuristics cannot guess.",
+    "enabled": true,
+    "design_globs": ["docs/architecture/DESIGN-*/data-model.md"],
+    "schema_extractor": "auto",
+    "schema_paths": ["db", "migrations"],
+    "schema_include": ["**/*.sql", "**/*.py", "**/*.prisma"],
+    "custom_table_regex": [],
+    "naming": {
+      "style": "snake_case",
+      "allow_plural_s": true,
+      "map": {}
+    },
+    "compare_columns": true,
+    "fail_on_missing_table": true,
+    "fail_on_missing_column": true,
+    "fail_on_extra_table": false
+  },
+  "waivers_dir": "docs/waivers"
+}

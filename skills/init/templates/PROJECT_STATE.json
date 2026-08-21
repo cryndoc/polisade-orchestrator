@@ -1,0 +1,49 @@
+{
+  "polisadeVersion": "3.7.3",
+  "schemaVersion": 7,
+  "lastUpdated": null,
+  "project": {
+    "name": "",
+    "description": "",
+    "version": "0.1.0",
+    "status": "active"
+  },
+  "settings": {
+    "gitBranching": true,
+    "reviewer": {
+      "mode": "auto",
+      "cli": "auto"
+    },
+    "workspaceMode": "worktree",
+    "vcsProvider": "github",
+    "debt": {
+      "autoCreateTask": false
+    },
+    "chore": {
+      "autoCreateTask": true
+    },
+    "experimental": {
+      "designCorpus": false,
+      "changeSpec": false,
+      "intentCorpus": false,
+      "onboard": false
+    }
+  },
+  "architecture": {
+    "activeADRs": [],
+    "deprecatedADRs": [],
+    "lastArchReview": null,
+    "corpus": {
+      "dir": "docs/architecture",
+      "manifest": "docs/architecture/manifest.yaml",
+      "mode": "silo",
+      "pendingRun": null
+    }
+  },
+  "artifacts": {},
+  "waitingForPM": [],
+  "blocked": [],
+  "readyToWork": [],
+  "inProgress": [],
+  "inReview": []
+}
