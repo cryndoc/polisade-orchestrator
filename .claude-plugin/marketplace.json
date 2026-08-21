@@ -1,0 +1,18 @@
+{
+  "name": "polisade-marketplace",
+  "owner": {
+    "name": "Evgeny"
+  },
+  "metadata": {
+    "description": "Polisade Orchestrator — autonomous development framework by Polisade (technical id: polisade)",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "polisade",
+      "source": "./",
+      "description": "Polisade Orchestrator — autonomous development framework: implement → test → PR → review → merge",
+      "version": "3.7.3"
+    }
+  ]
+}
