@@ -1,0 +1,37 @@
+{
+  "projectContext": {
+    "name": "",
+    "description": "",
+    "techStack": [],
+    "keyFiles": [],
+    "entryPoints": []
+  },
+  "patterns": [],
+  "antiPatterns": [],
+  "decisions": [],
+  "glossary": [],
+  "commonMistakes": [],
+  "learnings": [],
+  "frictionPatterns": [],
+  "testing": {
+    "strategy": "tdd-first",
+    "testCommand": null,
+    "typeCheckCommand": null,
+    "lintCommand": null,
+    "knownFlakyTests": []
+  },
+  "quality": {
+    "e2e": {
+      "enabled": false,
+      "expectations": [
+        "Каждая фаза завершается e2e item",
+        "Обновить docs/test-coverage"
+      ],
+      "paths": {
+        "e2e_tests_glob": null,
+        "testkit_scenarios_glob": null,
+        "docs_to_update": []
+      }
+    }
+  }
+}
