@@ -1,0 +1,50 @@
+# polisade drift-gate — blocking CI job (issue #205, Pipeline V2 Ф1).
+# Deterministic arch<->code check: api.md <-> code routes, ER <-> DB schema.
+#
+# Blocking contract: mark this job as REQUIRED in branch protection
+# (Settings -> Branches -> Require status checks: "drift-gate").
+# The gate cannot be bypassed by any agent-side flag; the only legal
+# suppression is a reviewable waiver artifact docs/waivers/DRIFT-WAIVER-NNN.md
+# (template: docs/templates/drift-waiver-template.md) with an expiry date.
+#
+# Non-GitHub CI (Bitbucket Pipelines, GitLab CI, Jenkins): port the single
+# command below — `${POLISADE_PYTHON:-python3} scripts/polisade_drift_gate.py`
+# — as a blocking step; the script is stdlib-only and needs nothing but
+# Python 3. The interpreter token (issue #169) defaults to `python3` and lets a
+# runner where `python3` is not on PATH (Windows) set POLISADE_PYTHON=py once.
+#
+# The second step is the Mermaid renderability linter (issue #188): a
+# stdlib-only detector of the mistakes that make a ```mermaid block fail to
+# render at all (`;` in a label, unbalanced `subgraph`/`end`, unknown diagram
+# header). It is NOT a Mermaid parser and needs no Node — see
+# `${POLISADE_PYTHON:-python3} scripts/polisade_lint_mermaid.py --help` for the
+# blind spots it does not cover.
+#
+# If this project uses a diagram type the linter's catalogue does not know yet
+# (Mermaid adds them faster than we ship), append `--allow-header <Type>` to
+# the step below instead of dropping the step — e.g.
+#   run: ${POLISADE_PYTHON:-python3} scripts/polisade_lint_mermaid.py . --allow-header myDiagram
+# Likewise `--paths '<glob>' …` if the diagrams do not live under
+# `docs/architecture/` or `docs/**/DESIGN-*/`.
+name: polisade-drift-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  drift-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mermaid renderability (design diagrams)
+        run: ${POLISADE_PYTHON:-python3} scripts/polisade_lint_mermaid.py .
+      - name: Drift gate (arch <-> code)
+        run: ${POLISADE_PYTHON:-python3} scripts/polisade_drift_gate.py --report drift-report.json
+      - name: Upload drift report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift-report.json
