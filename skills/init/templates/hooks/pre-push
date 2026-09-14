@@ -1,0 +1,102 @@
+#!/bin/sh
+# Polisade Orchestrator — pre-push guard (issue #159).
+#
+# Installed into a target project by /polisade:init. Plain POSIX sh and a
+# plain git hook, so it works under every CLI: git runs it, not the agent.
+#
+# It refuses two pushes:
+#
+#   1. Anything landing on refs/heads/main or refs/heads/master, unless
+#      POLISADE_ALLOW_MAIN_PUSH=1 is set for that one command.
+#   2. Any branch other than POLISADE_EXPECTED_BRANCH, when that variable
+#      is set. Unset means "no branch expectation" — this hook does not
+#      invent one.
+#
+# It deliberately does NOT refuse:
+#   * a deletion of a non-trunk branch (`git push origin :feat/old`) — removing
+#     a stale branch is hygiene, and POLISADE_EXPECTED_BRANCH is about where
+#     work LANDS, not what gets cleaned up. Deleting main/master still needs
+#     the escape hatch;
+#   * a trunk push that POLISADE_ALLOW_MAIN_PUSH=1 already allowed, even when
+#     POLISADE_EXPECTED_BRANCH names something else. One deliberate override
+#     is one override; refusing it again on the second rule would make the
+#     documented escape hatch a lie;
+#   * tags and other non-`refs/heads/*` refs.
+#
+# Deliberate limits, so nobody mistakes this for a safety system:
+#   * A hook lives in .git/hooks, which is NOT cloned and NOT versioned. A
+#     fresh checkout has no guard until someone installs it, and anyone can
+#     remove it or pass --no-verify. It stops an accidental push, not a
+#     determined one.
+#   * Server-side branch protection is the real barrier. This is the local
+#     seat belt in front of it.
+#
+# git feeds pre-push one line per ref on stdin:
+#     <local ref> <local sha> <remote ref> <remote sha>
+# A single `git push` can carry several refs (e.g. `--all`, or a branch plus
+# a tag), so every line is checked and the exit code is the union: one
+# refused ref refuses the whole push, which is exactly what git does anyway.
+
+allow_main="${POLISADE_ALLOW_MAIN_PUSH:-}"
+expected="${POLISADE_EXPECTED_BRANCH:-}"
+
+# A deletion (`git push origin :branch`) arrives with an all-zero local SHA.
+# Matched by "contains no non-zero character" rather than against a literal of
+# a fixed length: a SHA-256 repository sends 64 zeros, not 40.
+
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Blank line, or a ref git could not name — nothing to judge.
+    [ -n "$remote_ref" ] || continue
+
+    deleting=no
+    case "$local_sha" in
+        *[!0]*) ;;
+        *) deleting=yes ;;
+    esac
+
+    trunk=no
+    case "$remote_ref" in
+        refs/heads/main|refs/heads/master) trunk=yes ;;
+    esac
+
+    if [ "$trunk" = yes ] && [ "$allow_main" != "1" ]; then
+        if [ "$deleting" = yes ]; then
+            echo "polisade pre-push: refusing to DELETE '$remote_ref'." >&2
+        else
+            echo "polisade pre-push: refusing to push to '$remote_ref'." >&2
+            echo "  Polisade work lands on a feature branch and reaches the" >&2
+            echo "  trunk through a pull request." >&2
+        fi
+        echo "  If this is deliberate, repeat it once as:" >&2
+        echo "      POLISADE_ALLOW_MAIN_PUSH=1 git push ..." >&2
+        status=1
+        continue
+    fi
+
+    # An explicitly allowed trunk push is already a deliberate exception; do
+    # not then refuse it a second time for not being the expected branch.
+    [ "$trunk" = yes ] && continue
+
+    # Deleting a stale feature branch is ordinary hygiene, not work landing on
+    # the wrong branch — the expectation is about where work GOES.
+    [ "$deleting" = yes ] && continue
+
+    if [ -n "$expected" ]; then
+        case "$remote_ref" in
+            refs/heads/*)
+                branch=${remote_ref#refs/heads/}
+                if [ "$branch" != "$expected" ]; then
+                    echo "polisade pre-push: refusing to push '$branch'." >&2
+                    echo "  POLISADE_EXPECTED_BRANCH is '$expected'." >&2
+                    echo "  Push the expected branch, or clear the variable if" >&2
+                    echo "  the expectation is stale." >&2
+                    status=1
+                fi
+                ;;
+        esac
+    fi
+done
+
+exit $status

@@ -1,0 +1,194 @@
+---
+name: state
+description: Show project status
+---
+
+# /polisade:state — Статус проекта
+
+Показать полный статус проекта для PM.
+
+## Использование
+
+```
+/polisade:state    # Показать статус
+```
+
+## Алгоритм
+
+1. Прочитай `.state/PROJECT_STATE.json`
+2. Просканируй папки `docs/`, `backlog/`, `tasks/` на артефакты
+3. Сверь статусы с PROJECT_STATE.json (синхронизируй если нужно)
+4. Собери статистику по состояниям
+5. Выведи в структурированном формате
+
+## Формат вывода
+
+```
+═══════════════════════════════════════════
+  СТАТУС ПРОЕКТА
+═══════════════════════════════════════════
+
+МОЖНО РЕАЛИЗОВАТЬ (N):
+   • BUG-001: Кнопка не работает (P1)
+   • TASK-001: Create API endpoint
+   • TASK-002: Add UI component
+
+МОЖНО СОЗДАТЬ ЗАДАЧИ (N):
+   • FEAT-001 → /polisade:tasks FEAT-001
+   • SPEC-001 → /polisade:tasks SPEC-001
+
+НУЖНА ПРОРАБОТКА (N):
+   • PRD-001 → /polisade:spec PRD-001
+   • SPEC-002 → /polisade:design SPEC-002 (опц., создать doc-as-code пакет)
+
+АРХИТЕКТУРА:
+   Active ADRs: 4
+   Design packages: 2 (DESIGN-001, DESIGN-002)
+
+ПРИЁМКА:
+   пар: 7; последний прогон: 6/7 зелёных; ⚠️ база разошлась: чеков 0, приборов 1
+
+<!-- polisade:claude-only BEGIN -->
+CORPUS-RUN (экспериментально, #187 — показывать только если есть ARCHRUN или corpus.mode=living):
+   Corpus mode: living
+   • ARCHRUN-001: ждёт PM — "synonym collision: Order vs PurchaseOrder"
+       → /polisade:unblock, затем /polisade:design-corpus --resume=<runId>
+   • ARCHRUN-002: ready (resume required) → /polisade:design-corpus --resume=<runId>
+<!-- polisade:claude-only END -->
+
+───────────────────────────────────────────
+
+ЖДУТ PM (N):
+   • TASK-003: "Какой лимит для rate limiting?"
+     (с 2024-01-15)
+   • FEAT-002: "Какой приоритет?"
+     (с 2024-01-14)
+
+ЗАБЛОКИРОВАНО (N):
+   • TASK-008: Тесты падают после изменений в API
+
+В РАБОТЕ (N):
+   • TASK-005: Implementing auth module
+
+───────────────────────────────────────────
+
+БЭКЛОГ:
+   Features: 3 (1 ready, 2 draft)
+   Bugs: 2 (1 ready, 1 in_progress)
+   Tech Debt: 5 (2 ready, 3 draft)
+
+ЗАВЕРШЕНО ЗА СЕССИЮ:
+   • TASK-004, BUG-002
+
+═══════════════════════════════════════════
+РЕКОМЕНДАЦИЯ:
+   → [Конкретное действие]
+═══════════════════════════════════════════
+```
+
+## Логика рекомендаций
+
+1. Если есть `waitingForPM`:
+   → "Запусти /polisade:unblock чтобы ответить на N вопросов"
+
+2. Если есть ready BUG:
+   → "Есть баги для исправления. /polisade:continue или /polisade:implement BUG-XXX"
+
+3. Если есть ready TASK:
+   → "Запусти /polisade:continue для автономной работы"
+
+4. Если есть ready FEAT/SPEC/PLAN без задач:
+   → "Создай задачи: /polisade:tasks FEAT-XXX"
+
+5. Если есть ready PRD без спеки:
+   → "Создай спецификацию: /polisade:spec PRD-XXX"
+
+5b. Если есть ready SPEC без DESIGN-PKG (опц. рекомендация):
+   → "Можно создать дизайн-пакет: /polisade:design SPEC-XXX (C4/ERD/OpenAPI/ADR)"
+
+6. Если всё `blocked`:
+   → "Все задачи заблокированы. Детали выше."
+
+7. Если всё `done`:
+   → "Всё завершено! Добавь новую работу: /polisade:feature или /polisade:prd"
+
+## Группировка артефактов
+
+### По возможности действия
+
+| Группа | Артефакты | Следующее действие |
+|--------|-----------|-------------------|
+| Можно реализовать | BUG, TASK, DEBT (ready) | /polisade:implement или /polisade:continue |
+| Можно создать задачи | FEAT, SPEC, PLAN (ready) | /polisade:tasks |
+| Нужна проработка | PRD (ready) | /polisade:spec |
+| Можно спроектировать | SPEC (ready) без DESIGN-PKG | /polisade:design (опционально) |
+| Архитектура | DESIGN-PKG, ADR | информационно — показывает количество в блоке "АРХИТЕКТУРА" |
+<!-- polisade:claude-only BEGIN -->
+| Corpus-run (#187) | ARCHRUN (waiting_pm / ready) | отдельная секция "CORPUS-RUN" — **НЕ** в "Можно реализовать"; resume через /polisade:design-corpus --resume, не implement |
+<!-- polisade:claude-only END -->
+
+### Источник строки блока "ПРИЁМКА" (issue #343)
+
+Строка берётся ЦЕЛИКОМ из поля `summary` одной команды и не собирается
+своими словами:
+
+<!-- polisade:exec-denied CAPSULE BEGIN -->
+> ⛔ **Вызов скрипта отклонён или не запустился** (`Command references protected path` / `Install directory is read-protected` / `Filesystem Guard` / `the tool's default permission is 'deny'`, отказ песочницы, ненулевой exit без вывода) — **STOP**.
+> Процитируй отказ дословно. НЕ пересказывай по исходнику, что скрипт «сделал бы»; НЕ собирай dry-run вручную; НЕ переходи к apply/push/pr-create.
+> НЕ транскрибируй скрипт (прочитать → записать копию в `/tmp` или в проект → запустить копию): копия не байт-идентична — уезжают классы символов в regex, форма возврата функций, пропадают целые функции — и молча меняется набор применённых изменений.
+> Отказ инструмента — это отказ, а не результат. Доложи PM дословный текст отказа и сошлись на #127 (доставка скриптов в проект).
+<!-- polisade:exec-denied CAPSULE END -->
+
+```bash
+${POLISADE_PYTHON:-python3} {plugin_root}/scripts/polisade_acceptance.py status --json --root "${POLISADE_WORK_DIR:-.}"
+```
+
+Чеки она НЕ исполняет — состояние читается из файла приёмки, зафиксированной
+базы и отчёта последнего прогона. Тот же расчёт читают `/polisade:doctor`,
+`/polisade:review-pr` и раздел `## Приёмка` в описании PR: четыре собственных
+разбора одного файла разошлись бы молча.
+
+Блок печатается ВСЕГДА, включая «приёмка не заведена»: её отсутствие — факт
+о проекте, а не пустое место. Пометки `stale` (отчёт снят на другом коде) и
+«база разошлась» не глотать — это ровно те два способа, которыми зелёная
+приёмка перестаёт что-либо означать.
+
+### Источники цифр для блока "АРХИТЕКТУРА"
+
+- **Active ADRs** — длина массива `architecture.activeADRs` в PROJECT_STATE.json
+- **Design packages** — количество артефактов с `type == "DESIGN-PKG"` в `artifacts`
+
+<!-- polisade:claude-only BEGIN -->
+### Источники для блока "CORPUS-RUN" (#187, experimental)
+
+- **Corpus mode** — `architecture.corpus.mode` (`silo` / `living`). Блок
+  показывается только если `mode == "living"` ИЛИ есть хотя бы один `ARCHRUN-*`.
+- **ARCHRUN runs** — артефакты с префиксом `ARCHRUN-` (из `waitingForPM` и
+  `readyToWork`). `ready` означает **«resume required»**, а не обычную задачу:
+  всегда сопровождай ссылкой `/polisade:design-corpus --resume=<runId>`
+  (runId — из `architecture.corpus.pendingRun`). **Никогда не показывай ARCHRUN
+  в "Можно реализовать".**
+<!-- polisade:claude-only END -->
+
+### По статусу
+
+- **ready** — готово к работе
+- **in_progress** — в работе
+- **waiting_pm** — ждёт ответа PM
+- **blocked** — техническая проблема
+- **done** — завершено
+- **draft** — черновик (не показывать в основном списке)
+
+## Синхронизация
+
+При обнаружении расхождений между файлами и PROJECT_STATE.json:
+- Добавь недостающие артефакты в state
+- Обнови статусы из frontmatter файлов
+- Сообщи о синхронизации: "Синхронизировано N артефактов"
+
+## Важно
+
+- Показывай самую важную информацию первой (баги, блокеры)
+- Группируй по возможным действиям, не просто по типам
+- Давай конкретные рекомендации с командами
+- Не перегружай информацией — PM должен быстро понять что делать
