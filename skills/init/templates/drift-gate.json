@@ -1,0 +1,45 @@
+{
+  "_doc": "Config for scripts/polisade_drift_gate.py — deterministic arch<->code drift gate (blocking in CI). Full field reference: docs/config-reference.md in the Polisade Orchestrator repo. JSON has no comments, so `_doc` keys carry them; the gate ignores every key starting with `_`.",
+  "version": 1,
+  "api": {
+    "_doc": "OpenAPI paths+methods declared in design artifacts vs route declarations in code. Built-in extractors: fastapi/flask, express, nestjs, spring; `auto` runs them all. For anything else use custom_route_regex with named groups (?P<method>...) and (?P<path>...).",
+    "enabled": true,
+    "design_globs": [
+      "docs/architecture/DESIGN-*/api.md",
+      "docs/contracts/provided/*.yaml",
+      "docs/contracts/provided/*.yml"
+    ],
+    "code_extractor": "auto",
+    "code_roots": ["src", "app", "server"],
+    "code_include": ["**/*.py", "**/*.js", "**/*.ts", "**/*.java"],
+    "custom_route_regex": [],
+    "prefix_map": {},
+    "fail_on_unimplemented": true,
+    "fail_on_undocumented": true
+  },
+  "er": {
+    "_doc": "Mermaid erDiagram entities/attributes in design artifacts vs the DB schema. Built-in extractors: sql-ddl, sqlalchemy, prisma; `auto` runs them all. naming.map pins entity->table names the heuristics cannot guess.",
+    "_doc_types": "Since issue #85 a column carries type / length / nullable / default, and a field is compared ONLY when both sides declare it (absence is never drift). Type spelling is normalised through one cross-language table inside the script; type_map overrides and extends it (lowercase raw spelling -> canonical name), e.g. {\"inn_t\": \"VARCHAR\"}. There is no per-stack preset. SQL DDL, Prisma and SQLAlchemy that describe one column differently give er.schema_conflict — that is the ORM-vs-migration case. Mermaid has no nullability syntax: the ER side reads it only from an attribute comment whose comma-separated position is exactly `not null` / `nullable` / `null` / `required` / `optional`, plus PK. Mermaid has no DEFAULT syntax either, so fail_on_default_mismatch reaches only the schema<->schema half; it gates both halves so it cannot be bypassed. missing_column needs a COMPLETE extractor (a CREATE TABLE body or a Prisma model): an ALTER-only migration directory is an increment, not a table. timestamptz and timestamp without time zone normalise DIFFERENTLY on purpose (as do TIMESTAMP(6) WITH TIME ZONE and DateTime(timezone=True)) - collapse them via type_map if the project does not care. The three per-field switches gate BOTH halves symmetrically: fail_on_type_mismatch=false also silences a type disagreement reported as er.schema_conflict.",
+    "enabled": true,
+    "design_globs": ["docs/architecture/DESIGN-*/data-model.md"],
+    "schema_extractor": "auto",
+    "schema_paths": ["db", "migrations"],
+    "schema_include": ["**/*.sql", "**/*.py", "**/*.prisma"],
+    "custom_table_regex": [],
+    "naming": {
+      "style": "snake_case",
+      "allow_plural_s": true,
+      "map": {}
+    },
+    "type_map": {},
+    "compare_columns": true,
+    "fail_on_missing_table": true,
+    "fail_on_missing_column": true,
+    "fail_on_extra_table": false,
+    "fail_on_type_mismatch": true,
+    "fail_on_nullable_mismatch": true,
+    "fail_on_default_mismatch": false,
+    "fail_on_schema_conflict": true
+  },
+  "waivers_dir": "docs/waivers"
+}
