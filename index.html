@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="polisade-plugin-version" content="3.8.15">
+<meta name="polisade-plugin-version" content="3.8.16">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polisade Orchestrator — руководство</title>
 <style>
@@ -26,13 +26,14 @@
   .layout{display:grid;grid-template-columns:236px minmax(0,1fr);gap:38px;align-items:start;margin-top:40px}
   main{min-width:0}
   /* ---------- навигация ---------- */
-  nav{position:sticky;top:24px;font-size:13.5px}
+  nav{position:sticky;top:24px;font-size:13.5px;max-height:calc(100vh - 48px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
   nav{counter-reset:n}
   nav .navtitle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-bottom:10px}
   nav ol{list-style:none}
   nav li{counter-increment:n;margin:1px 0}
   nav a{display:block;padding:5px 9px;border-radius:8px;color:#333c49;text-decoration:none;border:1px solid transparent}
   nav a::before{content:counter(n) ".";color:#a7a398;font-weight:700;margin-right:7px}
+  a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--det);outline-offset:3px}
   nav a:hover{background:#fff;border-color:var(--line);color:var(--ink)}
   /* ---------- типографика ---------- */
   h1{font-size:36px;line-height:1.15;letter-spacing:-.6px}
@@ -63,6 +64,9 @@
   .legend{display:flex;flex-wrap:wrap;gap:4px;margin-top:16px}
   /* ---------- таблицы ---------- */
   .tablewrap{overflow-x:auto;margin-top:16px}
+  .diagram{overflow-x:auto}
+  .diagram svg{display:block;min-width:900px;max-width:none!important}
+  .mobile-hint{display:none;color:var(--muted);font-size:13px}
   table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;border-radius:12px;overflow:hidden;min-width:620px}
   th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
   th{background:#f0eee7;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
@@ -135,10 +139,11 @@
   .totop:hover{opacity:1}
   @media(max-width:900px){
     .layout{grid-template-columns:minmax(0,1fr);gap:0}
-    nav{position:static;margin-bottom:8px}
+    nav{position:static;margin-bottom:8px;max-height:none;overflow:visible}
     nav ol{columns:2;column-gap:14px}
     .grid2,.grid3,.dd,.io{grid-template-columns:minmax(0,1fr)}
     .chip{white-space:normal;max-width:100%}
+    .mobile-hint{display:block}
     h1{font-size:30px}
     nav ol{columns:1}
   }
@@ -148,7 +153,7 @@
 <div class="wrap">
 
 <header>
-  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 3.8.15</div>
+  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 3.8.16</div>
   <h1>Как устроен Polisade Orchestrator<br><span style="color:var(--muted);font-weight:600;font-size:24px">артефакты, порядок шагов, практика применения</span></h1>
   <p class="sub" style="margin-top:14px">Polisade Orchestrator — плагин для CLI-агента, который помогает пройти путь от требований до изменений в репозитории. Он сохраняет требования, проектные решения и задачи в файлах, затем ведёт работу по циклу <b>реализация → тесты → PR → ревью → слияние</b>. Глубину проработки и степень автономности выбирает команда. Инструкции и Python-скрипты доступны в публичном репозитории.</p>
   <div class="hero-facts">
@@ -189,7 +194,8 @@
       <p>Начните с <a href="#permissions">прав и следов работы</a>, затем прочитайте <a href="#acceptance">о приёмке</a> и <a href="#boundary">об ограничениях</a>. Уточните, кто владеет проверками и какие результаты должны подтверждаться в CI.</p>
     </div>
   </div>
-  <div class="note ok"><b>Проверено 15 октября 2026 года.</b> Основа руководства — публичный релиз <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.15">v3.8.15</a>, опубликованный 12 октября. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
+  <div class="note ok"><b>Проверено 16 октября 2026 года.</b> Основа руководства — публичный релиз <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.16">v3.8.16</a>, от 16 октября 2026 года. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
+  <p class="mobile-hint">Широкие таблицы и схемы можно прокручивать по горизонтали внутри их рамки.</p>
 </header>
 
 <div class="layout">
@@ -242,7 +248,7 @@
   <div class="grid3">
     <div class="card">
       <h3>1. Артефакт вместо переписки</h3>
-      <p style="font-size:14px">Идея превращается в файл в репозитории: FEAT-бриф, PRD, SPEC, DESIGN-пакет, PLAN, TASK. Файл видно в code review, он мержится вместе с кодом и живёт между сессиями агента.</p>
+      <p style="font-size:14px">Идея превращается в файл в репозитории: FEAT-бриф, PRD, SPEC, DESIGN-пакет, PLAN, TASK. Файл видно в code review, он проходит ревью и слияние вместе с кодом и живёт между сессиями агента.</p>
     </div>
     <div class="card">
       <h3>2. Исполняется только TASK</h3>
@@ -257,7 +263,7 @@
   <div class="card" style="margin-top:18px">
     <h3>Три вида работы внутри одного цикла</h3>
     <p style="font-size:14px;margin-top:8px">Полезно всегда понимать, кто именно выполняет шаг — от этого зависит, чему можно доверять без проверки.</p>
-    <div class="tablewrap">
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
       <table>
         <tr><th style="width:190px">Кто</th><th>Что делает</th><th>Чем это ценно</th></tr>
         <tr>
@@ -286,7 +292,7 @@
   <div class="kicker">Словарь</div>
   <h2>Термины, которые встретятся дальше</h2>
   <p class="sub">Ничего экзотического, но слова используются в узком смысле — стоит сверить понимание один раз.</p>
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr><th style="width:230px">Термин</th><th>Что значит здесь</th></tr>
       <tr><td><b>CLI-агент</b></td><td>Программа-помощник, которая работает в терминале и умеет читать и править файлы проекта, запускать команды, ходить в git. Polisade — не самостоятельное приложение, а набор инструкций для такого агента; <b>графического интерфейса у него нет</b>.</td></tr>
@@ -365,7 +371,7 @@
     <div class="card">
       <h3>Команды можно не запоминать</h3>
       <p style="font-size:14px">Агент распознаёт намерение по обычной фразе и сам вызывает нужный сценарий. Таблица ниже — для Claude Code, где маршрутизация описана в файле правил проекта; в сборках Qwen, GigaCode и opencode фразами доступна только часть команд, остальные вызываются слешем напрямую:</p>
-      <div class="tablewrap">
+      <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
         <table style="min-width:0">
           <tr><th>Вы говорите</th><th>Что произойдёт</th></tr>
           <tr><td>«Статус?»</td><td><code>state</code> — обзор проекта</td></tr>
@@ -385,7 +391,7 @@
         <li><b>Не приложение с интерфейсом.</b> Вся работа идёт командами в терминале — своими или продиктованными агенту обычной фразой. Экранов, кнопок и веб-панели нет; если вы не работаете в терминале, вам понадобится кто-то из команды рядом.</li>
         <li><b>Не SaaS и не сервис.</b> Всё выполняется локально вашим агентом, артефакты остаются в вашем репозитории, телеметрии у плагина нет (телеметрия вашего CLI-агента и внешнего ревьюера — вопрос к их поставщикам). Сеть используется там, где это видно: операции с PR, проверка доступа в <code>doctor</code>, верификация push, запуск внешнего ревьюера и — если вы дали ссылки в интервью PRD — их загрузка.</li>
         <li><b>Не модель и не подписка.</b> Доступ к LLM — ваш; плагин не проксирует запросы и не хранит ключи.</li>
-        <li><b>Не замена CI — но и не «пишите тесты сами».</b> Тесты по задаче агент пишет и запускает сам (по умолчанию сначала красный тест, потом код), регрессию проекта гоняет после каждой задачи. CI нужен для другого: чтобы те же проверки исполнялись <b>независимо от агента</b>, в чистом окружении и как обязательная проверка PR. Подробно — в разделе «Команда, трекер, CI».</li>
+        <li><b>Не замена CI — но и не «пишите тесты сами».</b> Тесты по задаче агент пишет и запускает сам (по умолчанию сначала красный тест, потом код), регрессионные тесты проекта запускает после каждой задачи. CI нужен для другого: чтобы те же проверки исполнялись <b>независимо от агента</b>, в чистом окружении и как обязательная проверка PR. Подробно — в разделе «Команда, трекер, CI».</li>
         <li><b>Не интеграция с трекером.</b> Единица работы — файл в git; связь с Jira или Issues поддерживается ссылкой (см. раздел «Команда, трекер, CI»).</li>
         <li><b>Не автопилот без человека.</b> При недостатке сведений процесс останавливается и спрашивает — это заложено намеренно.</li>
       </ul>
@@ -454,7 +460,7 @@ TASK-002 → review · merge остаётся за вами</pre>
 <section id="install">
 <div class="kicker">Установка</div>
   <h2>Установка и доступы</h2>
-  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на проверенной версии v3.8.15; новые выпуски доступны на странице релизов.</p>
+  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на проверенной версии v3.8.16; новые выпуски доступны на странице релизов.</p>
 
   <h3 style="margin-top:22px">Claude Code</h3>
 <pre>/plugin marketplace add cryndoc/polisade-orchestrator
@@ -464,28 +470,28 @@ TASK-002 → review · merge остаётся за вами</pre>
 
   <h3 style="margin-top:22px">Qwen CLI</h3>
 <pre>mkdir -p ~/.qwen/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.15/polisade-qwen.zip -o /tmp/polisade-qwen.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-qwen.zip -o /tmp/polisade-qwen.zip
 unzip /tmp/polisade-qwen.zip -d ~/.qwen/extensions/
 qwen
 /polisade:init MyProject</pre>
 
   <h3 style="margin-top:22px">GigaCode CLI</h3>
 <pre>mkdir -p ~/.gigacode/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.15/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
 unzip /tmp/polisade-gigacode.zip -d ~/.gigacode/extensions/</pre>
   <p>У этой сборки есть дополнительный шаг: из <b>корня своего проекта</b>, в обычном терминале выполните:</p>
 <pre>bash ~/.gigacode/extensions/polisade/setup-project.sh</pre>
-  <p>Скрипт копирует рабочие файлы в <code>.polisade/bin/</code> и сверяет их с манифестом. В v3.8.15 манифест содержит 78 файлов. Закоммитьте копию вместе с проектом, затем запустите GigaCode:</p>
+  <p>Скрипт копирует рабочие файлы в <code>.polisade/bin/</code> и сверяет их с манифестом. Состав копии указан в манифесте сборки. Закоммитьте копию вместе с проектом, затем запустите GigaCode:</p>
 <pre>gigacode
 /polisade:init MyProject
 /polisade:init-verify</pre>
   <p class="sub">Копия в проекте нужна из-за ограничений доступа к каталогу расширения. После каждого обновления повторяйте <code>setup-project.sh</code> и коммитьте обновлённую копию. Скрипт заменяет <code>.polisade/bin/</code>, поэтому собственные файлы туда не добавляйте. В сборке GigaCode по умолчанию выбран Bitbucket Server. Если используете GitHub, настройте <code>settings.vcsProvider</code> соответственно.</p>
-  <div class="note warn"><b>Обновление существующего проекта.</b> Для v3.8.15 особенно важно обновить копию скриптов: ревью использует новые параметры и два шаблона задания ревьюеру. Старая копия остановит вызов. Выполните <code>setup-project.sh</code>, затем <code>/polisade:migrate</code> для предпросмотра, примените согласованные изменения и запустите <code>/polisade:doctor</code>. Повторный <code>init</code> для обновления не нужен. Проверка <code>doctor</code> сверяет копию с её собственным манифестом и версией состояния проекта; одного зелёного результата недостаточно, если и копия, и состояние остались старыми.</div>
+  <div class="note warn"><b>Обновление существующего проекта.</b> При обновлении важно обновить и проектную копию скриптов: ревью использует новые параметры и два шаблона задания ревьюеру. Старая копия остановит вызов. Выполните <code>setup-project.sh</code>, затем <code>/polisade:migrate</code> для предпросмотра, примените согласованные изменения и запустите <code>/polisade:doctor</code>. Повторный <code>init</code> для обновления не нужен. Проверка <code>doctor</code> сверяет копию с её собственным манифестом и версией состояния проекта; одного зелёного результата недостаточно, если копия и состояние всё ещё относятся к прежней версии.</div>
 
   <h3 style="margin-top:22px">opencode</h3>
   <p>До распаковки сохраните существующий <code>~/.config/opencode/AGENTS.md</code>, если он есть: архив содержит файл с таким же именем.</p>
 <pre>mkdir -p ~/.config/opencode
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.15/polisade-opencode.zip -o /tmp/polisade-opencode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-opencode.zip -o /tmp/polisade-opencode.zip
 unzip /tmp/polisade-opencode.zip -d ~/.config/opencode/
 opencode
 /polisade-init MyProject</pre>
@@ -554,9 +560,9 @@ scripts/polisade_drift_gate.py
     <div class="card"><h3>Границы доступа</h3><p>Плагин сам не создаёт песочницу. Worktree отделяет рабочую ветку и файлы, но не является границей доступа процесса к сети или файловой системе. Возможные ограничения задаются вашим CLI, контейнером, учётной записью и настройками среды.</p><p>При внешнем ревью запускается отдельный CLI: он может читать файлы задачи и репозитория в пределах своих прав. Режим <code>self</code> исключает этот дополнительный CLI, но основной агент по-прежнему обращается к своей модели. Проверьте условия обработки данных выбранных инструментов.</p></div>
     <div class="card"><h3>Что настроить в команде</h3><ul class="plain"><li>Права агента и доступ к секретам.</li><li>Защиту основной ветки, обязательные проверки CI и человеческое одобрение PR.</li><li>Владельца приёмочных тестов и порядок проверки их изменений.</li><li>Кто отвечает на вопросы агента и разрешает повтор операции после отказа сервера.</li></ul></div>
   </div>
-  <div class="tablewrap"><table>
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table>
     <tr><th>Где искать</th><th>Что сохраняется</th><th>Ограничение</th></tr>
-    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v3.8.15 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
+    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v3.8.16 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
     <tr><td><code>.state/pm-reports/</code></td><td>Полные текстовые отчёты <code>migrate</code>, <code>sync</code> и <code>doctor</code>, а также указатель на последний отчёт каждой команды.</td><td>Локальные файлы, по 20 последних отчётов на команду. Это не общий журнал всех действий агента.</td></tr>
     <tr><td><code>.polisade/tmp/</code></td><td>Временные задания ревьюерам и результаты тестов перед ревью.</td><td>Не предназначены для коммита и долговременного аудита.</td></tr>
     <tr><td>Сессия CLI</td><td>Вывод инструментов и список целей правки.</td><td>Плагин не ведёт полного неизменяемого журнала команд и версий моделей. Сохранение сессии зависит от CLI.</td></tr>
@@ -627,7 +633,7 @@ scripts/polisade_drift_gate.py
         <li><code>implement TASK-NNN</code> — одна задача под контролем</li>
         <li><code>continue</code> — автономный цикл по всем готовым задачам</li>
         <li><code>acceptance</code> — образ результата: запись, прогон, ремонт (у скрипта под ней есть и отдельный режим <code>list</code> — показать разобранные пары)</li>
-        <li><code>review</code> — второе мнение о <b>постановке</b> задачи: достаточно ли она ясна для исполнения. Не переводит задачу в следующий статус; если ветка с реализацией уже есть, дополнительно прогоняет по диффу проверку качества тестов</li>
+        <li><code>review</code> — второе мнение о <b>постановке</b> задачи: достаточно ли она ясна для исполнения. Не переводит задачу в следующий статус; если ветка с реализацией уже есть, дополнительно выполняет по диффу проверку качества тестов</li>
         <li><code>review-pr</code> — независимое ревью PR с оценкой (не путать с <code>review</code> выше: та про постановку задачи, эта про готовый PR)</li>
         <li><code>pr</code> — операции с PR: <code>create</code>, <code>list</code>, <code>view</code>, <code>diff</code>, <code>merge</code>, <code>comment</code>, <code>close</code>, <code>whoami</code>, другие подкоманды VCS-инструмента доступны с их параметрами; у <code>merge</code> есть <code>--squash</code>, <code>--delete-branch</code> и <code>--task</code></li>
         <li><code>unblock</code> — ответы на вопросы, снятие блокировок</li>
@@ -667,7 +673,7 @@ scripts/polisade_drift_gate.py
 <div class="kicker">Статусы</div>
   <h2>Статусы и действия человека</h2>
   <p class="sub">Сначала определите, что именно ждёт решения: требование, задача, результат ревью или отказ сервера. <code>/polisade:state</code> показывает общую картину, <code>/polisade:unblock</code> помогает ответить на вопросы.</p>
-  <div class="tablewrap"><table>
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table>
     <tr><th>Статус</th><th>Значение</th><th>Следующее действие</th></tr>
     <tr><td><code>draft</code></td><td>Черновик.</td><td>Уточнить содержание и подготовить к следующему шагу.</td></tr>
     <tr><td><code>ready</code></td><td>Артефакт готов к следующему шагу.</td><td>Для требований — спецификация, проектирование или задачи; для TASK — реализация с учётом зависимостей.</td></tr>
@@ -692,7 +698,7 @@ scripts/polisade_drift_gate.py
   <h2>Настройки, которые стоит выставить осознанно</h2>
   <p class="sub">Живут в <code>.state/PROJECT_STATE.json</code> в блоке <code>settings</code> и в <code>knowledge.json</code>. Полная схема всех полей — в <code>docs/config-reference.md</code> репозитория. Экспериментальные режимы руками в JSON <b>не правьте</b> — для них с версии 3.8.0 есть команда, о ней сразу под таблицей.</p>
 
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr><th style="width:210px">Ключ</th><th style="width:130px">По умолчанию</th><th>Что меняет</th></tr>
       <tr><td><code>gitBranching</code></td><td><code>true</code></td><td>Включает ветвление по родителю задачи: у задач от PLAN отдельные ветки; задачи одного FEAT могут использовать общую ветку. Выключение означает работу в текущей ветке.</td></tr>
@@ -701,7 +707,7 @@ scripts/polisade_drift_gate.py
       <tr><td><code>reviewer.mode</code> / <code>reviewer.cli</code></td><td><code>auto</code> / <code>auto</code></td><td>Кто делает независимое ревью и на чём. Таблица режимов — в разделе <a href="#cycle">«Цикл одной задачи»</a>.</td></tr>
       <tr><td><code>testing.*</code> в <code>knowledge.json</code></td><td><code>strategy: tdd-first</code>, команды не заданы</td><td>Дисциплина тест-авторинга (<code>tdd-first</code> или <code>test-along</code>) и команды прогона: <code>testCommand</code>, <code>typeCheckCommand</code>, <code>lintCommand</code>, список известных нестабильных тестов. Живёт не в настройках проекта, а в памяти проекта — потому что это знание о репозитории.</td></tr>
       <tr><td><b>Гейты проекта</b> в <code>knowledge.json → testing</code></td><td>команды не заданы</td><td>Ваши собственные проверки, которые цикл зовёт после регрессии. Плагин ничего не парсит и не классифицирует: проект объявляет команду, она <b>сама</b> возвращает ненулевой код на нужном пороге. Четыре гейта — <code>securityCommand</code> (шаг 2e), <code>apiCompatCommand</code> + <code>apiCompatPaths</code> (шаг 2f, срабатывает только если дифф задел контрактные пути), <code>migrationTestCommand</code> + <code>migrationPaths</code>, <code>performanceCommand</code>; у каждого свой <code>…Mode: block | warn</code>. Отсутствие инструмента и таймаут — <b>не находки</b> и никогда не блокируют.</td></tr>
-      <tr><td><code>testing.acceptanceMode</code> в <code>knowledge.json</code></td><td><code>advise</code></td><td>Как цикл обращается с приёмкой (<code>acceptance/ACCEPTANCE.md</code>). <code>advise</code> — после зелёной регрессии <b>предлагает</b> прогон и ничего не блокирует. <code>block</code> — гоняет приёмку сам, красная держит задачу в <code>waiting_pm</code>, в ревью она не уходит. <code>off</code> — шаг пропущен. Действует в <code>/polisade:implement</code>; что с <code>continue</code> — в разделе <a href="#acceptance">про приёмку</a>. Появилось в 3.8.0.</td></tr>
+      <tr><td><code>testing.acceptanceMode</code> в <code>knowledge.json</code></td><td><code>advise</code></td><td>Как цикл обращается с приёмкой (<code>acceptance/ACCEPTANCE.md</code>). <code>advise</code> — после зелёной регрессии <b>предлагает</b> прогон и ничего не блокирует. <code>block</code> — запускает приёмочные проверки сам; ошибка оставляет задачу в <code>waiting_pm</code>, в ревью она не уходит. <code>off</code> — шаг пропущен. Действует в <code>/polisade:implement</code>; что с <code>continue</code> — в разделе <a href="#acceptance">про приёмку</a>. Появилось в 3.8.0.</td></tr>
       <tr><td><code>conventions.path</code> · <code>conventions.files</code> в <code>knowledge.json</code></td><td><code>docs/conventions</code> · пусто</td><td>Слот правил вашей команды. Плагин их <b>не пишет и не выдумывает</b> — только владеет местом и указателем: <code>sync --apply</code> механически перечисляет найденные <code>*.md</code>, а чек-лист реализации и критерий ревью читают перечисленные файлы и цитируют применённые правила.</td></tr>
       <tr><td><code>debt.autoCreateTask</code> · <code>chore.autoCreateTask</code></td><td>в новом проекте <code>false</code> · <code>true</code>; существующие значения сохраняются, отсутствующие при миграции получают <code>true</code></td><td>Создавать ли задачу сразу вместе с записью о техдолге или хозработе. Разово перебивается флагом команды: <code>debt … --task</code> создаст, <code>chore … --no-task</code> не создаст.</td></tr>
       <tr><td><code>experimental.changeSpec</code></td><td><code>false</code></td><td>Экспериментальный формат спецификации «от кода» с обязательной секцией локализации и координатными задачами. По умолчанию действует классический формат спецификации. Включается командой <code>/polisade:migrate --enable=changeSpec --apply</code>.</td></tr>
@@ -727,7 +733,7 @@ scripts/polisade_drift_gate.py
 
   <div class="card" style="margin-top:18px">
     <h3>Если migrate или sync просит решение человека</h3>
-    <p>Начинайте с предпросмотра. В v3.8.15 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
+    <p>Начинайте с предпросмотра. В v3.8.16 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
     <p>Отдельно проверяются неподтверждённые отмены и решения, которые исчезли из списка вопросов после ручной правки статуса, шаблона или флага. Прочитайте блок «ОТЧЁТ ДЛЯ PM» и выполните предлагаемый маршрут: ответить, явно отложить с причиной либо подтвердить исход. Не повторяйте <code>--apply</code> вслепую. Для прямого вызова Python-скрипта в неинтерактивной среде применение требует <code>--apply --yes</code>; <code>--yes</code> подтверждает запись, но не заменяет содержательное решение.</p>
     <p>Полный отчёт сохраняется в <code>.state/pm-reports/</code>. Файл появляется и при предпросмотре, если <code>.state/</code> уже существует; документы и состояние проекта от этого не применяются.</p>
   </div>
@@ -748,15 +754,15 @@ scripts/polisade_drift_gate.py
   <div class="card" style="margin-bottom:16px">
     <h3>Решения, которые стоит принять до пилота</h3>
     <p style="font-size:14px">Таблица помогает зафиксировать договорённости до первого запуска.</p>
-    <div class="tablewrap">
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
       <table>
         <tr><th style="width:210px">Вопрос</th><th style="width:250px">Варианты</th><th>Последствие выбора</th></tr>
-        <tr><td>Сколько PR на фичу</td><td>Задачи от брифа — одна ветка и один PR; задачи от плана — свой PR на каждую</td><td>Определяет размер PR и нагрузку на ревью. Хотите мелкие PR — ведите работу через <code>roadmap</code></td></tr>
-        <tr><td>Кто мержит</td><td><code>implement</code> (стоп перед merge) · <code>continue</code> (мержит сам при оценке ≥ 8)</td><td>При защищённой ветке автоматическое слияние всё равно упрётся в правила провайдера — см. карточку выше</td></tr>
+        <tr><td>Сколько PR на функциональное изменение</td><td>Задачи от брифа — одна ветка и один PR; задачи от плана — свой PR на каждую</td><td>Определяет размер PR и нагрузку на ревью. Хотите мелкие PR — ведите работу через <code>roadmap</code></td></tr>
+        <tr><td>Кто выполняет слияние</td><td><code>implement</code> (стоп перед merge) · <code>continue</code> (выполняет слияние сам при оценке ≥ 8)</td><td>При защищённой ветке автоматическое слияние всё равно зависит от правил платформы PR — см. карточку выше</td></tr>
         <tr><td>Кто делает ревью</td><td><code>auto</code> · <code>external</code> (только Codex CLI) · <code>self</code> · <code>off</code></td><td>В Claude Code без Codex используется отдельный запуск текущего CLI, если он доступен. В остальных сборках ревью идёт через субагента; <code>off</code> в протоколе выбора ревьюера означает передачу открытого PR человеку</td></tr>
         <tr><td>Изоляция работы</td><td><code>workspaceMode: worktree</code> (по умолчанию) · <code>inplace</code></td><td>Путь рабочего дерева возвращает инструмент. При отказе подготовки дерева прочитайте причину; не продолжайте реализацию в основной ветке</td></tr>
         <tr><td>Где живут секреты</td><td><code>.env</code> в репозитории · файл снаружи через <code>--env-file</code></td><td>В шаблоне <code>.gitignore</code> строка <code>.env</code> закомментирована — файл в репозитории виден и git, и модели</td></tr>
-        <tr><td>Что из состояния едет в git</td><td>Проверить четыре строки-исключения в <code>.gitignore</code> · дополнить их <code>/polisade:migrate --apply</code></td><td>От этого зависит, будут ли у коллег ваш стек и команды тестов, переживёт ли база приёмки чужой раннер и будет ли на что показать аудиту</td></tr>
+        <tr><td>Какие файлы состояния хранятся в git</td><td>Проверить четыре строки-исключения в <code>.gitignore</code> · дополнить их <code>/polisade:migrate --apply</code></td><td>От этого зависит, будут ли у коллег ваш стек и команды тестов, переживёт ли база приёмки чужой раннер и будет ли чем подтвердить ход работы при аудите</td></tr>
         <tr><td>Задача сразу или только запись</td><td><code>debt.autoCreateTask</code>, <code>chore.autoCreateTask</code></td><td>Влияет на то, насколько быстро бэклог превращается в работу</td></tr>
         <tr><td>Формат спецификации</td><td>Классический (по умолчанию) · change-spec</td><td>Второй сужает радиус правки, но добавляет требований и остановок — не для первого знакомства</td></tr>
       </table>
@@ -772,26 +778,26 @@ scripts/polisade_drift_gate.py
     </div>
     <div class="card">
       <h3>CI: где граница с тестами агента</h3>
-      <p style="font-size:14px"><b>Тесты пишет и гоняет агент</b> — по задаче и регрессию всего проекта. Отдельно «досоздавать тесты для CI» не нужно: в пайплайне запускаются те же самые. CI добавляет ровно четыре вещи, которых у локального прогона нет: <b>независимость</b> (вердикт не со слов агента), <b>чистое окружение</b>, <b>проверку результата слияния</b>, и <b>принудительность</b> — обязательный status check плюс защита ветки.</p>
+      <p style="font-size:14px"><b>Тесты пишет и запускает агент</b> — по задаче и регрессию всего проекта. Отдельно «досоздавать тесты для CI» не нужно: в пайплайне запускаются те же самые. CI добавляет ровно четыре вещи, которых у локального прогона нет: <b>независимость</b> (вердикт не со слов агента), <b>чистое окружение</b>, <b>проверку результата слияния</b>, и <b>принудительность</b> — обязательный status check плюс защита ветки.</p>
       <p style="font-size:14px">Часть проверок можно не откладывать до пайплайна: <code>implement</code> вызывает объявленные вами команды (security-скан, совместимость API, миграционные и нагрузочные тесты) сразу после регрессии — контракт простой, «ненулевой код выхода = находка». Что имеет смысл поставить в пайплайн: те же тесты и линтеры проекта, приёмочный прогон, линт артефактов и спецификации, проверка дрейфа (готовый рецепт кладётся при <code>init</code>; его контракт — быть <b>обязательным</b> чеком, а единственное легальное исключение — файл-waiver со сроком).</p>
       <p style="font-size:14px">Ревью агента — не замена вашему: это дополнительное мнение с оценкой, опубликованное в PR.</p>
     </div>
     <div class="card" style="border-top:4px solid var(--stop)">
       <h3>Защита ветки и обязательное ревью</h3>
-      <p style="font-size:14px">Инструмент про них <b>не знает</b>. Он доводит задачу до merge и вызывает merge у провайдера; если ветка защищена — требует аппрув человека, обязательные проверки или актуальность относительно основной ветки, — merge просто не пройдёт: вернётся ошибка провайдера. При вызове <code>pr-merge --task</code> задача перейдёт в <code>waiting_pm</code>, а причина сохранится в записи отказа. Повтор операции блокируется до явного признания причины человеком. Если слияние прошло, но удаление ветки не подтверждено, результат тоже требует разбирательства; сначала проверьте фактическое состояние PR на сервере.</p>
+      <p style="font-size:14px">Инструмент про них <b>не знает</b>. Он доводит задачу до merge и вызывает merge у провайдера; если ветка защищена — требует одобрение человека, обязательные проверки или актуальность относительно основной ветки, — merge просто не пройдёт: вернётся ошибка провайдера. При вызове <code>pr-merge --task</code> задача перейдёт в <code>waiting_pm</code>, а причина сохранится в записи отказа. Повтор операции блокируется до явного признания причины человеком. Если слияние прошло, но удаление ветки не подтверждено, результат тоже требует разбирательства; сначала проверьте фактическое состояние PR на сервере.</p>
       <p style="font-size:14px">Отдельно: агент <b>не ставит аппрув</b> — провайдер не даёт одобрять собственный PR. Поэтому «ревью с оценкой 9/10» и «аппрув в GitHub» — разные вещи: первое живёт комментарием в PR, второе по-прежнему за человеком.</p>
       <p style="font-size:14px">Практический вывод: защита ветки и автономный цикл совместимы, но тогда цикл заканчивается не на merge, а на открытом PR. Это не поломка — это ровно та конфигурация, которую раздел «Границы» и рекомендует для регулируемого контура.</p>
     </div>
     <div class="card">
       <h3>Несколько людей и агентов</h3>
       <p style="font-size:14px">Работа идёт в отдельных ветках и worktree: по ветке на родителя в обычном режиме и по ветке на задачу в режиме плана (правило целиком — в разделе про цикл). Дерево задачи определяет инструмент. Перед продолжением проверяйте, кто работает в этой ветке; worktree не служит распределённой блокировкой между разными машинами.</p>
-      <p style="font-size:14px"><b>Что из состояния едет в git.</b> Раньше ответ был «ничего»: весь <code>.state/</code> закрывался целиком, и всё, что команда наживала, оставалось на ноутбуке того, кто это сделал. Сейчас четыре записи из семи ездят с репозиторием — каждая по своей причине, и их нужно коммитить и проверять при слиянии. Возможность конфликта остаётся, в том числе у общей памяти и счётчиков.</p>
+      <p style="font-size:14px"><b>Какие файлы состояния хранятся в git.</b> В старых версиях весь <code>.state/</code> закрывался целиком, и накопленные сведения оставались на одной машине. Сейчас четыре записи из семи хранятся в репозитории — каждая по своей причине, и их нужно коммитить и проверять при слиянии. Возможность конфликта остаётся, в том числе у общей памяти и счётчиков.</p>
       <div class="tablewrap" style="margin-top:6px">
       <table style="font-size:13.5px">
         <tr><th style="width:210px">Запись</th><th style="width:92px">В git</th><th>Почему так</th></tr>
         <tr><td><code>knowledge.json</code></td><td><b>да</b></td><td>Память проекта: стек, команды тестов, паттерны, словарь. Иначе каждый заполняет её заново, а субагенты изобретают свои команды тестов.</td></tr>
         <tr><td><code>counters.json</code></td><td><b>да</b> <span class="chip" style="font-size:10px">3.7.21</span></td><td>Единственная запись о том, что номер <b>был выдан</b>. Всё остальное восстанавливается из файлов на диске, а удалённый артефакт файла не оставляет. Пока файл был локальным, автор и свежий клон отвечали на «какой номер следующий» по-разному.</td></tr>
-        <tr><td><code>acceptance-baseline.json</code></td><td><b>да</b> <span class="chip" style="font-size:10px">3.7.15</span></td><td>Хеши ратифицированных пар и тест-файлов, которые их проверяют. База — это то, <b>с чем</b> сравнивают, поэтому из текущего дерева она не выводится. Пока она была локальной, ослабленную проверку видел только тот, кто последним гонял приёмку у себя.</td></tr>
+        <tr><td><code>acceptance-baseline.json</code></td><td><b>да</b> <span class="chip" style="font-size:10px">3.7.15</span></td><td>Хеши ратифицированных пар и тест-файлов, которые их проверяют. База — это то, <b>с чем</b> сравнивают, поэтому из текущего дерева она не выводится. Пока она была локальной, ослабленную проверку видел только тот, кто последним запускал приёмочные проверки локально.</td></tr>
         <tr><td><code>session-log/</code></td><td><b>да</b> <span class="chip" style="font-size:10px">3.7.19</span></td><td>Долговечная запись о том, что происходило, кроме истории git и комментариев в PR. Каталог, а не один файл: файл на артефакт-сессию с именем по семени — раздельные файлы уменьшают число конфликтов, но сами по себе не исключают их.</td></tr>
         <tr><td><code>PROJECT_STATE.json</code></td><td>нет</td><td>Производная проекция. Источник истины о статусах — сами файлы артефактов, они и мержатся; <code>/polisade:sync --apply</code> пересобирает реестр из них.</td></tr>
         <tr><td>отчёт приёмки, временные файлы</td><td>нет</td><td>Результат последнего прогона и черновики тел PR — переживать машину им незачем.</td></tr>
@@ -844,7 +850,7 @@ scripts/polisade_drift_gate.py
 <section id="trouble">
   <div class="kicker">Диагностика</div>
   <h2>Диагностика: что делать, если</h2>
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr><th style="width:290px">Симптом</th><th>Что это значит и что делать</th></tr>
       <tr><td>Непонятно, что происходит в проекте</td><td><code>/polisade:state</code> — обзор: что готово к работе, где можно создать задачи, что ждёт PM, что заблокировано, какие дизайн-пакеты и ADR есть.</td></tr>
@@ -877,7 +883,7 @@ scripts/polisade_drift_gate.py
   <div class="kicker">Схема · вид сверху</div>
   <h2>Карта потоков: вид сверху</h2>
   <p class="sub">Верхний ряд — шаги. Нижний — то, что живёт между шагами и между сессиями. Розовые стрелки вниз — запись артефактов. Синяя пунктирная шина — чтение контекста: <b>код читается наравне с артефактами</b>, а на каком шаге и как именно — в таблице под схемой.</p>
-  <div class="card" style="margin-top:18px;overflow-x:auto">
+  <div class="card diagram" tabindex="0" role="region" aria-label="Схема; прокручивается по горизонтали" style="margin-top:18px">
   <svg viewBox="0 0 1180 400" width="100%" style="max-width:100%" font-family="inherit" role="img" aria-label="Схема шагов и хранилищ Polisade Orchestrator">
     <defs>
       <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6472"/></marker>
@@ -955,7 +961,7 @@ scripts/polisade_drift_gate.py
   </div>
   <h3 style="margin-top:24px">На каком шаге агент смотрит в код</h3>
   <p class="sub">Частый вопрос: где именно агент получает сведения об исходном коде. Ответ по шагам — и там, где кода нет, это сказано прямо.</p>
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr><th style="width:200px">Шаг</th><th style="width:230px">Читает артефакты</th><th>Читает код</th></tr>
       <tr><td><b>Формализация</b><br><code>spec</code></td><td>PRD / FEAT, <code>knowledge.json</code></td><td>В классическом формате спецификации — <b>нет</b>: опирается на требования и на <code>knowledge.json</code>. В формате <b>change-spec</b> (opt-in) — да: секция «Локализация» заполняется поиском по исходникам.</td></tr>
@@ -978,7 +984,7 @@ scripts/polisade_drift_gate.py
   <h2>Каталог артефактов: что, кем и где создаётся</h2>
   <p class="sub">Каждая строка — отдельный класс файла со своим шаблоном в <code>docs/templates/</code>, своим статусом в реестре и своим законным следующим шагом.</p>
 
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr>
         <th style="width:120px">Артефакт</th><th style="width:150px">Чем создаётся</th><th style="width:210px">Где лежит</th><th>Зачем нужен</th><th style="width:150px">Следующий шаг</th>
@@ -1081,7 +1087,7 @@ scripts/polisade_drift_gate.py
     <h3>Два имени у артефакта: семя и номер</h3>
     <p class="sub">С версии 3.7.16 артефакт получает имя в два приёма. Понимать это нужно всем, кто работает не в одиночку: файл, который вы только что создали, называется не так, как будет называться в основной ветке.</p>
 
-    <div class="tablewrap">
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table style="font-size:13.5px">
       <tr><th style="width:150px"></th><th style="width:230px">Семя (<code>seed</code>)</th><th>Номер</th></tr>
       <tr><td><b>Как выглядит</b></td><td><code>TASK-k7m2q4xz</code></td><td><code>TASK-007</code></td></tr>
@@ -1117,11 +1123,11 @@ seed: wcvfh1zc          <span class="c"># не изменился и не изм
 
     <div class="grid2" style="margin-top:16px">
       <div class="card">
-        <h3 style="font-size:15px">Что едет за номером</h3>
+        <h3 style="font-size:15px">Какие данные связаны с номером</h3>
         <p style="font-size:14px"><b>Машинные ссылки</b> — <code>parent:</code>, <code>depends_on:</code>, <code>blocks:</code>, <code>related:</code>, <code>realizes_requirements:</code>. Их сравнивают с ID, а не читают глазами, поэтому <code>sync</code> переводит их на новый номер, включая составные формы вроде <code>SPEC-&lt;семя&gt;.FR-001</code>. Совпадение только по целому токену: <code>TASK-k7m2q4xzx</code> не тронут, когда номер получает <code>TASK-k7m2q4xz</code>.</p>
       </div>
       <div class="card">
-        <h3 style="font-size:15px">Что не едет — и это намеренно</h3>
+        <h3 style="font-size:15px">Какие данные не переносятся</h3>
         <p style="font-size:14px"><b>Проза внутри артефактов остаётся с семенем.</b> Ссылку, сделанную до нумерации — сообщение коммита, заголовок PR, строку в переписке, — переписать нельзя. Текст человека верен ровно потому, что семя не двигалось. Разрешить такую ссылку можно вызовом <code>polisade_id.py resolve &lt;семя&gt;</code> из каталога скриптов установленной сборки — печатает текущий ID и путь.</p>
       </div>
     </div>
@@ -1158,7 +1164,7 @@ seed: wcvfh1zc          <span class="c"># не изменился и не изм
   <div class="card" style="margin-top:18px">
     <h3>Путь change-spec целиком — по шагам</h3>
     <p style="font-size:14px">Если флаг включён, меняется не один шаг, а вся цепочка от спецификации до правки кода.</p>
-    <div class="tablewrap">
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
       <table>
         <tr><th style="width:150px">Шаг</th><th>Что происходит</th><th style="width:220px">Артефакт</th></tr>
         <tr><td><b>Включение</b></td><td>Командой <code>/polisade:migrate --enable=changeSpec --apply</code> (выключение — <code>--disable</code>). Она выставит <code>settings.experimental.changeSpec</code> и тем же прогоном довезёт шаблон <code>docs/templates/change-spec-template.md</code>, если его в проекте нет. Существующие артефакты не меняются — формат влияет только на новые.</td><td>—</td></tr>
@@ -1224,7 +1230,7 @@ docs/specs/SPEC-001/
     </div>
 
     <div class="note" style="font-size:13.8px">
-      <b>Доступность корпуса.</b> В v3.8.15 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
+      <b>Доступность корпуса.</b> В v3.8.16 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
     </div>
   </div>
 
@@ -1239,7 +1245,7 @@ docs/specs/SPEC-001/
   <h2>Полный маршрут: какой артефакт создаётся на каком шаге и зачем</h2>
   <p class="sub">Карта выше — вид сверху из шести блоков. Здесь те же блоки разложены по артефактам: одиннадцать шагов от пустого репозитория до вливания изменения в архитектуру. Набор шагов зависит от содержания работы: небольшой функции может хватить брифа и задач, а изменение API или данных обычно требует спецификации и проектных решений. Для крупной инициативы полезен план.</p>
 
-  <div class="tablewrap">
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
     <table>
       <tr><th style="width:34px">#</th><th style="width:150px">Шаг и команда</th><th style="width:250px">Что создаётся</th><th>Зачем</th><th style="width:180px">Признак завершения</th></tr>
       <tr><td><b>0</b></td><td><b>Каркас</b><br><code>init</code></td><td><code>.state/</code>, <code>docs/</code>, <code>backlog/</code>, <code>tasks/</code>, шаблоны, CI-рецепт</td><td>Чтобы у работы было место, а у документов — устойчивые идентификаторы</td><td><code>init-verify</code> печатает PASS</td></tr>
@@ -1337,7 +1343,7 @@ docs/specs/SPEC-001/
       <div class="body">
         <h3><code>continue</code> или <code>implement TASK-NNN</code> <span class="chip llm">модель</span> <span class="chip det">скрипт</span></h3>
         <div class="meta">автономный либо контролируемый режим</div>
-        <p style="font-size:14px">Внутри каждой задачи — подготовка дерева и локализация целей, затем <b>тесты и код</b> (по умолчанию сначала падающий тест, потом реализация — двумя коммитами), регрессия всего проекта, PR, независимое ревью с оценкой, merge. <code>continue</code> берёт задачи одну за другой и мержит сам при оценке не ниже 8; <code>implement</code> проходит одну задачу и останавливается перед merge. Подробно — в разделе «Автономный цикл».</p>
+        <p style="font-size:14px">Внутри каждой задачи — подготовка дерева и локализация целей, затем <b>тесты и код</b> (по умолчанию сначала падающий тест, потом реализация — двумя коммитами), регрессия всего проекта, PR, независимое ревью с оценкой, merge. <code>continue</code> берёт задачи одну за другой и выполняет слияние сам при оценке не ниже 8; <code>implement</code> проходит одну задачу и останавливается перед merge. Подробно — в разделе «Автономный цикл».</p>
         <div class="io"><div><b>вход</b>задача со статусом <code>ready</code></div><div><b>выход</b>ветка, коммиты, список целей локализации, PR с комментарием ревью, merge, статус <code>done</code></div></div>
       </div>
     </div>
@@ -1390,7 +1396,7 @@ docs/specs/SPEC-001/
   <h2>Цикл одной задачи</h2>
   <p class="sub">Это ядро процесса. Цикл не прерывается на падающих тестах и замечаниях ревью — их агент чинит сам. Он прерывается только там, где нужно решение человека. Нумерация здесь <b>своя</b>: пять фаз ниже — это внутренность шага 7 «Маршрута по шагам», а не продолжение его шкалы.</p>
 
-  <div class="card" style="margin-top:18px;overflow-x:auto">
+  <div class="card diagram" tabindex="0" role="region" aria-label="Схема; прокручивается по горизонтали" style="margin-top:18px">
   <svg viewBox="0 0 1140 300" width="100%" style="max-width:100%" font-family="inherit" role="img" aria-label="Схема автономного цикла задачи">
     <defs>
       <marker id="c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6472"/></marker>
@@ -1446,7 +1452,7 @@ docs/specs/SPEC-001/
     <div class="card">
       <h3>Кто выполняет ревью</h3>
       <p>В Claude Code выбор задаётся <code>settings.reviewer</code>. В Qwen, GigaCode и opencode ревью PR выполняет отдельный субагент с собственным контекстом; флаг <code>self</code> там принимается для совместимости.</p>
-      <div class="tablewrap"><table style="min-width:0">
+      <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table style="min-width:0">
         <tr><th>Режим в Claude Code</th><th>Поведение</th></tr>
         <tr><td><code>auto</code></td><td>Codex CLI, если доступен и прошёл проверку идентичности; иначе отдельный запуск текущего CLI, если доступен.</td></tr>
         <tr><td><code>external</code></td><td>Только Codex CLI; если недоступен, ревью останавливается.</td></tr>
@@ -1458,7 +1464,7 @@ docs/specs/SPEC-001/
   </div>
 
   <div class="card" style="margin-top:18px">
-    <h3>Что изменилось в ревью v3.8.15</h3>
+    <h3>Как выполняется ревью</h3>
     <ol class="steps">
       <li>До запуска ревьюера <code>polisade_review_pr_guard.py</code> проверяет статус задачи, находит её рабочее дерево и запускает <code>testing.testCommand</code> из технического контекста этого дерева.</li>
       <li>Тот же инструмент записывает готовое задание в <code>.polisade/tmp/review-brief-TASK-….md</code>. Агент передаёт ревьюеру путь к файлу. Контрольная строка задания должна вернуться в отчёте; несовпадение требует остановки.</li>
@@ -1471,7 +1477,7 @@ docs/specs/SPEC-001/
 
   <div class="note warn">
     <b>Слияние выполняет VCS-инструмент.</b> Сценарии <code>review-pr</code> и <code>continue</code> используют <code>pr-merge --task</code>. При подтверждённом слиянии инструмент записывает <code>done</code>; при отказе или неподтверждённом результате — причину и остановку в <code>waiting_pm</code>. Повтор merge блокируется до явного признания причины человеком; новые коммиты сами этот запрет не снимают. Не нужно повторять merge другим способом.
-    <p>На GitHub используется squash; в Bitbucket Server флаг <code>--squash</code> принимается без выполнения squash. В v3.8.15 запись <code>done</code> может остаться отдельным локальным коммитом ветки задачи и не попасть в основную ветку, поскольку PR уже смержен. Инструмент отклоняет push ветки на таком завершающем коммите. Состояние PR на сервере и результат записи статуса проверяйте отдельно.</p>
+    <p>На GitHub используется squash; в Bitbucket Server флаг <code>--squash</code> принимается без выполнения squash. В v3.8.16 запись <code>done</code> может остаться отдельным локальным коммитом ветки задачи и не попасть в основную ветку, поскольку PR уже смержен. Инструмент отклоняет push ветки на таком завершающем коммите. Состояние PR на сервере и результат записи статуса проверяйте отдельно.</p>
   </div>
 
   <div class="card" style="margin-top:18px">
@@ -1578,7 +1584,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
     <p>Ремонт запускается по просьбе человека и меняет код по неуспешным проверкам. Предусмотрено не больше трёх раундов. Тест-файлы, фикстуры, конфигурацию запуска и сами критерии ослаблять нельзя. Если хеши разошлись с базой, сначала требуется разобраться с изменением проверок.</p>
   </div>
   <h3 style="margin-top:24px">Как приёмка связана с реализацией</h3>
-  <div class="tablewrap"><table>
+  <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table>
     <tr><th><code>testing.acceptanceMode</code></th><th>Поведение в implement</th></tr>
     <tr><td><code>advise</code>, по умолчанию</td><td>После регрессии предлагает прогон; не блокирует цикл.</td></tr>
     <tr><td><code>block</code></td><td>Выполняет приёмку. После предусмотренных попыток ремонта оставшиеся ошибки останавливают задачу в <code>waiting_pm</code>.</td></tr>
@@ -1611,7 +1617,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
     <div class="card">
       <h3>Детерминированная часть — обычные скрипты</h3>
       <p style="font-size:14px">Всё, что должно давать один и тот же результат независимо от модели, вынесено в <code>scripts/</code> на стандартной библиотеке Python: ни одной внешней зависимости, поэтому для их установки не требуются Python-пакеты. Доступность git, CLI и команд проекта проверяется отдельно. Их можно вызывать руками — это не внутренний API.</p>
-      <div class="tablewrap">
+      <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали">
         <table style="min-width:0">
           <tr><th>Скрипт</th><th>Что делает</th></tr>
           <tr><td><code>polisade_acceptance.py</code></td><td>разбор, линт, прогон приёмочных пар, хеши</td></tr>
@@ -1661,7 +1667,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
 
   <div class="card">
     <h3>Проверьте по публичным исходникам</h3>
-    <p>Эти команды выполняются из корня скачанных исходников релиза v3.8.15. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
+    <p>Эти команды выполняются из корня скачанных исходников релиза v3.8.16. Для диагностики укажите путь к целевому проекту вместо <code>/path/to/project</code>. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
 <pre class="light"><span class="c"># какие команды есть на самом деле</span>
 ls skills/
 
@@ -1672,7 +1678,7 @@ less skills/implement/SKILL.md
 python3 scripts/polisade_acceptance.py template
 
 <span class="c"># диагностика проекта; текстовый отчёт сохраняется локально</span>
-python3 scripts/polisade_doctor.py . --format=text
+python3 scripts/polisade_doctor.py /path/to/project --format=text
 
 <span class="c"># собрать сборку под другой CLI и посмотреть, что в ней</span>
 python3 tools/convert.py . --out /tmp/polisade-build --overlay tools/qwen-overlay</pre>
@@ -1868,9 +1874,9 @@ refs_checked: grep(links), grep(code)
 out_of_scope: src/shortlink/main.py (роуты — TASK-002)
 ───────────────────────────────────────────────
 tests/test_storage.py: 4 passed · регрессия: 5 passed
-PR #1 создан · ревью: 9/10 PASS
+PR #42 создан · ревью: 9/10 PASS
 TASK-001 → review (merge за вами)</pre>
-<pre>/polisade:pr merge 1 --squash --delete-branch --task TASK-001</pre>
+<pre>/polisade:pr merge 42 --squash --delete-branch --task TASK-001</pre>
         <div class="note ok" style="font-size:13.5px"><b>Практика 8.</b> Первые одну-две задачи проводите через <code>implement</code>. Вы увидите, что агент собирался трогать (список целей печатается до правок), и решите про merge сами. Доверие лучше строить на наблюдении, чем на надежде.</div>
       </div>
     </div>
@@ -1882,10 +1888,10 @@ TASK-001 → review (merge за вами)</pre>
         <div class="meta"><code>continue</code></div>
 <pre>/polisade:continue</pre>
 <pre class="light">TASK-002 · ветка plan/PLAN-001-TASK-002-create-link
-  регрессия: 9 passed · PR #2 · ревью 8/10 PASS · merge · done
+  регрессия: 9 passed · PR #45 · ревью 8/10 PASS · merge · done
 TASK-003
   регрессия: 1 failed → исправлено → 12 passed
-  PR #3 · ревью 7/10 IMPROVE → доработка → 9/10 PASS · merge · done
+  PR #46 · ревью 7/10 IMPROVE → доработка → 9/10 PASS · merge · done
 TASK-004
   вопрос: «в теле 404 отдавать код ошибки или человекочитаемый текст?»
   TASK-004 → waiting_pm</pre>
@@ -1901,7 +1907,7 @@ TASK-004
         <h3>Сдать работу против образа результата</h3>
         <div class="meta"><code>acceptance run</code></div>
 <pre>/polisade:acceptance run</pre>
-    <p style="font-size:14px">Этот шаг делаете вы: автономный цикл приёмку не гоняет — он закончился на merge.</p>
+    <p style="font-size:14px">Этот шаг делаете вы: в этом примере автономный цикл не запускает приёмочные проверки — он закончился на merge.</p>
 <pre class="light">AC-001 green   AC-002 green   AC-003 green   AC-004 green
 итог: 4/4 зелёных (best-effort: сверьте проверки с базой и проверьте актуальность прогона)</pre>
         <div class="note ok" style="font-size:13.5px"><b>Практика 10.</b> Посмотрите дифф тестов в смерженных PR глазами — особенно приёмочных. Зелёная приёмка означает «чеки прошли», а самый простой способ получить ложную зелень — ослабить сам чек.</div>
@@ -2056,7 +2062,7 @@ design_refs: [DESIGN-001/api.md#export, DESIGN-001/sequences.md]</pre>
 TASK-001 · ветка plan/PLAN-001-TASK-001-export-jobs-table
 worktree .worktrees/plan__PLAN-001-TASK-001-export-jobs-table/
 регрессия: 128 passed
-PR #41 · ревью: 9/10 PASS · merge · TASK-001 → done
+PR #47 · ревью: 9/10 PASS · merge · TASK-001 → done
 
 <span class="c"># TASK-002 — endpoint экспорта</span>
 регрессия: 2 failed → исправлено → 131 passed
@@ -2087,14 +2093,14 @@ AC-002  green   tests/acceptance/test_export_pdf.py
 </section>
 
 <footer>
-  <p><b>Polisade Orchestrator</b> — руководство пользователя. Проверено по публичному релизу <b>v3.8.15</b> 15 октября 2026 года. Лицензия Apache 2.0.</p>
+  <p><b>Polisade Orchestrator</b> — руководство пользователя. Проверено по публичному релизу <b>v3.8.16</b> 16 октября 2026 года. Лицензия Apache 2.0.</p>
   <p style="margin-top:8px">
     Репозиторий и релизы: <a href="https://github.com/cryndoc/polisade-orchestrator">github.com/cryndoc/polisade-orchestrator</a> ·
     HTML-исходник: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/main/docs/guide/index.html">docs/guide/index.html</a> ·
-    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.15/docs/config-reference.md">docs/config-reference.md</a> ·
-    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v3.8.15/skills/">skills/</a>
+    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/docs/config-reference.md">docs/config-reference.md</a> ·
+    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v3.8.16/skills/">skills/</a>
   </p>
-  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.15">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.15/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.15/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.15/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
+  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.16">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
   <p style="margin-top:8px">Вопросы и помощь по использованию — в Discussions, сообщения об ошибках и запросы функциональности — в Issues репозитория. Пожалуйста, не публикуйте в них внутренние пути, трассировки и данные заказчиков.</p>
 </footer>
 
