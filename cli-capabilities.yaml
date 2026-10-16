@@ -1,0 +1,170 @@
+# CLI capabilities and command contracts. See docs/config-reference.md.
+# Comments describe the public interface; values are the build source of truth.
+schema: 1
+
+
+targets:
+  claude-code:
+    command_substitution: true
+    task_tool: true
+    codex_cli: optional
+    mcp: true
+    webfetch: true
+    permission_layer: true
+    argument_syntax: "$ARGUMENTS"
+    context_file: CLAUDE.md
+    enforced: true
+    vcs_default: github
+    non_interactive_args: ["-p"]
+
+  qwen:
+    command_substitution: true
+    task_tool: true
+    codex_cli: false
+    mcp: true
+    webfetch: true
+    permission_layer: false
+    argument_syntax: "{{args}}"
+    context_file: QWEN.md
+    enforced: true
+    vcs_default: github
+    non_interactive_args: ["--allowed-tools=run_shell_command", "-p"]
+
+  gigacode:
+    command_substitution: false
+    task_tool: true
+    codex_cli: false
+    mcp: true
+    webfetch: true
+    permission_layer: false
+    argument_syntax: "{{args}}"
+    context_file: GIGACODE.md
+    enforced: false
+    vcs_default: bitbucket-server
+    non_interactive_args: ["--allowed-tools=run_shell_command", "--approval-mode", "auto-edit", "-p"]
+
+  opencode:
+    command_substitution: true
+    task_tool: true
+    codex_cli: false
+    mcp: true
+    webfetch: true
+    permission_layer: true
+    argument_syntax: "$ARGUMENTS"
+    context_file: AGENTS.md
+    enforced: true
+    vcs_default: github
+    non_interactive_args: ["run", "--dangerously-skip-permissions"]
+
+
+capabilities:
+  task_tool:
+    markers: ["subagent_type:", "subagent_type="]
+    overlay_required_when_false: true
+
+  codex_cli:
+    markers: ["which codex", "codex exec", "codex --version"]
+    overlay_required_when_false: true
+    fallback_allowed: true
+    non_interactive_args: ["exec", "--full-auto"]
+
+prompt_budgets:
+  core:
+    claude: 2000
+    qwen: 800
+    gigacode: 600
+  secondary:
+    claude: 1500
+    qwen: 600
+    gigacode: 500
+  meta:
+    claude: 1000
+    qwen: 500
+    gigacode: 400
+
+skill_tiers:
+  implement: core
+  tasks: core
+  spec: core
+  review: secondary
+  review-pr: secondary
+  doctor: secondary
+  design-corpus: secondary
+  init: meta
+  migrate: meta
+
+
+
+skills:
+  init:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["init project", "initialize", "scaffold project", "set up Polisade", "bootstrap project", "инициализируй проект", "разверни структуру"]
+  migrate:
+    emit_as_skill: true
+    intent_triggers: ["migrate project", "upgrade schema", "enable mode", "disable mode", "turn on changeSpec", "turn on designCorpus", "мигрируй проект", "обнови схему", "включи режим", "выключи режим"]
+  init-verify:
+    emit_as_skill: true
+    intent_triggers: ["verify init", "check init", "validate project structure", "проверь init", "проверь инициализацию"]
+  review:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+    emit_as_skill: true
+    intent_triggers: ["review TASK", "second opinion", "check my implementation", "codex review", "self-review", "review task", "сделай ревью"]
+  review-pr:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+    emit_as_skill: true
+    intent_triggers: ["review PR", "PR review", "review pull request", "quality review", "review this pr", "сделай ревью pr"]
+  implement:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+  continue:
+    cli_requires: "task_tool, codex_cli"
+    fallback: self
+  spec:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create SPEC", "write spec", "turn PRD into SPEC", "functional spec", "specification from PRD", "создай spec", "напиши спеку"]
+  design:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["design", "architecture diagrams", "doc-as-code artifacts", "C4", "ERD", "OpenAPI spec", "AsyncAPI", "event-driven", "Kafka", "message broker", "sequence diagram", "state machine", "domain glossary", "ADR"]
+  design-corpus:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["living corpus", "single architecture", "corpus mode", "one architecture for all SPECs", "move the architecture to the corpus", "migrate the silos", "живой корпус", "единая архитектура", "переведи архитектуру на корпус", "смигрируй силосы"]
+  roadmap:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create PLAN", "plan from SPEC", "roadmap", "implementation plan", "milestones", "сделай план", "create roadmap"]
+  tasks:
+    cli_requires: "task_tool"
+    emit_as_skill: true
+    intent_triggers: ["create tasks", "generate TASKs", "break down into tasks", "декомпозиция", "tasks from PLAN", "сделай таски", "break this into tasks"]
+  reconcile-docs:
+    cli_requires: "task_tool"
+  pr:
+    emit_as_skill: true
+    intent_triggers: ["open a PR", "create pull request", "push and open PR", "submit for review", "commit and open PR", "merge PR", "review PR status", "закоммить и сделай pr", "сделай пиар", "сделай pr"]
+  feature:
+    emit_as_skill: true
+    intent_triggers: ["create a feature", "add feature brief", "new feature work", "feature request", "add FEAT", "заведи фичу", "новая фича"]
+  defect:
+    emit_as_skill: true
+    intent_triggers: ["file a bug", "report defect", "bug report", "register defect", "заведи баг", "баг-репорт", "report a bug"]
+  debt:
+    emit_as_skill: true
+    intent_triggers: ["add tech debt", "record tech debt", "technical debt", "tech debt item", "refactor tracking", "технический долг", "запиши техдолг"]
+  chore:
+    emit_as_skill: true
+    intent_triggers: ["simple task", "chore", "small task", "housekeeping", "quick task", "мелкая задача", "чора"]
+  prd:
+    emit_as_skill: true
+    intent_triggers: ["create PRD", "write product requirements", "PRD document", "product brief", "напиши PRD", "создай PRD", "requirements doc"]
+  spike:
+    emit_as_skill: true
+    intent_triggers: ["research task", "spike", "investigation", "research question", "explore a problem", "ресёрч", "спайк"]
+  acceptance:
+    emit_as_skill: true
+    intent_triggers: ["acceptance checks", "приёмка", "образ результата", "запусти приёмку", "acceptance run", "прогони приёмку", "почини по красным"]
