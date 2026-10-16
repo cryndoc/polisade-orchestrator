@@ -83,8 +83,10 @@
   .note.ok{border-left-color:var(--ok);background:#f2fbf6}
   .note b{font-weight:700}
   /* ---------- сетки ---------- */
-  .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:18px}
-  .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:16px;margin-top:18px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:16px;margin-top:18px}
+  .stack{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:18px}
+  .grid2 > .card,.grid3 > .card,.stack > .card,.dd > .card,.paths > .card{margin-top:0}
   .lvl{border-top:5px solid var(--llm);border-radius:14px}
   .lvl.l2{border-top-color:var(--det)}
   .lvl.l3{border-top-color:var(--ok)}
@@ -103,7 +105,7 @@
   .io div{border:1px solid var(--line);border-radius:9px;background:#fbfaf7;padding:9px 11px}
   .io b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
   /* ---------- do / dont ---------- */
-  .dd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:18px}
+  .dd{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:16px;margin-top:18px}
   .dd .card{border-top:5px solid var(--ok)}
   .dd .card.no{border-top-color:var(--stop)}
   .dd h3{font-size:16px}
@@ -359,7 +361,7 @@
     </div>
   </div>
 
-  <div class="grid2">
+  <div class="stack">
     <div class="card">
       <h3>Команды можно не запоминать</h3>
       <p style="font-size:14px">Агент распознаёт намерение по обычной фразе и сам вызывает нужный сценарий. Таблица ниже — для Claude Code, где маршрутизация описана в файле правил проекта; в сборках Qwen, GigaCode и opencode фразами доступна только часть команд, остальные вызываются слешем напрямую:</p>
@@ -761,7 +763,7 @@ scripts/polisade_drift_gate.py
     </div>
   </div>
 
-  <div class="grid3">
+  <div class="stack">
     <div class="card">
       <h3>Трекер: Jira, YouTrack, Issues</h3>
       <p style="font-size:14px">Автоматической синхронизации с трекером нет. Рабочие артефакты хранятся в git; связь с внешней задачей команда поддерживает отдельно.</p>
@@ -1434,7 +1436,7 @@ docs/specs/SPEC-001/
   </div>
 
 
-  <div class="grid2">
+  <div class="stack">
     <div class="card">
       <h3>Подготовка, реализация и PR</h3>
       <p>При включённом ветвлении инструмент <code>task-worktree</code> готовит ветку и дерево задачи до реализации. Для родителя PLAN используется ветка <code>plan/PLAN-001-TASK-007-slug</code>; задачи одного FEAT, BUG, DEBT или CHORE обычно используют общую ветку родителя. Путь возвращает инструмент, агент использует его в дальнейших шагах.</p>
@@ -1594,7 +1596,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
   <h2>Что где лежит в исходниках — и как это проверить</h2>
   <p class="sub">Публичная поставка содержит текстовые инструкции и скрипты на стандартной библиотеке Python. Ниже — карта публичных исходников проверенного релиза.</p>
 
-  <div class="grid2">
+  <div class="stack">
     <div class="card">
       <h3>Одна команда = один файл инструкции</h3>
       <p style="font-size:14px">Каждая команда живёт в <code>skills/&lt;имя&gt;/SKILL.md</code>: YAML-заголовок (<code>name</code>, <code>description</code>, подсказка по аргументам, требования к CLI) плюс алгоритм обычным текстом. Агент читает этот файл и выполняет описанное — никакого скрытого рантайма между ним и моделью нет.</p>
