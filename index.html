@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="polisade-plugin-version" content="3.8.16">
+<meta name="polisade-plugin-version" content="3.8.17">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polisade Orchestrator — руководство</title>
 <style>
@@ -153,7 +153,7 @@
 <div class="wrap">
 
 <header>
-  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 3.8.16</div>
+  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 3.8.17</div>
   <h1>Как устроен Polisade Orchestrator<br><span style="color:var(--muted);font-weight:600;font-size:24px">артефакты, порядок шагов, практика применения</span></h1>
   <p class="sub" style="margin-top:14px">Polisade Orchestrator — плагин для CLI-агента, который помогает пройти путь от требований до изменений в репозитории. Он сохраняет требования, проектные решения и задачи в файлах, затем ведёт работу по циклу <b>реализация → тесты → PR → ревью → слияние</b>. Глубину проработки и степень автономности выбирает команда. Инструкции и Python-скрипты доступны в публичном репозитории.</p>
   <div class="hero-facts">
@@ -194,7 +194,7 @@
       <p>Начните с <a href="#permissions">прав и следов работы</a>, затем прочитайте <a href="#acceptance">о приёмке</a> и <a href="#boundary">об ограничениях</a>. Уточните, кто владеет проверками и какие результаты должны подтверждаться в CI.</p>
     </div>
   </div>
-  <div class="note ok"><b>Проверено 16 октября 2026 года.</b> Основа руководства — публичный релиз <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.16">v3.8.16</a>, от 16 октября 2026 года. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
+  <div class="note ok"><b>Проверено 16 октября 2026 года.</b> Основа руководства — публичный релиз <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.17">v3.8.17</a>, от 16 октября 2026 года. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
   <p class="mobile-hint">Широкие таблицы и схемы можно прокручивать по горизонтали внутри их рамки.</p>
 </header>
 
@@ -460,7 +460,7 @@ TASK-002 → review · merge остаётся за вами</pre>
 <section id="install">
 <div class="kicker">Установка</div>
   <h2>Установка и доступы</h2>
-  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на проверенной версии v3.8.16; новые выпуски доступны на странице релизов.</p>
+  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на проверенной версии v3.8.17; новые выпуски доступны на странице релизов.</p>
 
   <h3 style="margin-top:22px">Claude Code</h3>
 <pre>/plugin marketplace add cryndoc/polisade-orchestrator
@@ -470,14 +470,14 @@ TASK-002 → review · merge остаётся за вами</pre>
 
   <h3 style="margin-top:22px">Qwen CLI</h3>
 <pre>mkdir -p ~/.qwen/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-qwen.zip -o /tmp/polisade-qwen.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-qwen.zip -o /tmp/polisade-qwen.zip
 unzip /tmp/polisade-qwen.zip -d ~/.qwen/extensions/
 qwen
 /polisade:init MyProject</pre>
 
   <h3 style="margin-top:22px">GigaCode CLI</h3>
 <pre>mkdir -p ~/.gigacode/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
 unzip /tmp/polisade-gigacode.zip -d ~/.gigacode/extensions/</pre>
   <p>У этой сборки есть дополнительный шаг: из <b>корня своего проекта</b>, в обычном терминале выполните:</p>
 <pre>bash ~/.gigacode/extensions/polisade/setup-project.sh</pre>
@@ -491,7 +491,7 @@ unzip /tmp/polisade-gigacode.zip -d ~/.gigacode/extensions/</pre>
   <h3 style="margin-top:22px">opencode</h3>
   <p>До распаковки сохраните существующий <code>~/.config/opencode/AGENTS.md</code>, если он есть: архив содержит файл с таким же именем.</p>
 <pre>mkdir -p ~/.config/opencode
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.16/polisade-opencode.zip -o /tmp/polisade-opencode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-opencode.zip -o /tmp/polisade-opencode.zip
 unzip /tmp/polisade-opencode.zip -d ~/.config/opencode/
 opencode
 /polisade-init MyProject</pre>
@@ -562,7 +562,7 @@ scripts/polisade_drift_gate.py
   </div>
   <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table>
     <tr><th>Где искать</th><th>Что сохраняется</th><th>Ограничение</th></tr>
-    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v3.8.16 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
+    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v3.8.17 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
     <tr><td><code>.state/pm-reports/</code></td><td>Полные текстовые отчёты <code>migrate</code>, <code>sync</code> и <code>doctor</code>, а также указатель на последний отчёт каждой команды.</td><td>Локальные файлы, по 20 последних отчётов на команду. Это не общий журнал всех действий агента.</td></tr>
     <tr><td><code>.polisade/tmp/</code></td><td>Временные задания ревьюерам и результаты тестов перед ревью.</td><td>Не предназначены для коммита и долговременного аудита.</td></tr>
     <tr><td>Сессия CLI</td><td>Вывод инструментов и список целей правки.</td><td>Плагин не ведёт полного неизменяемого журнала команд и версий моделей. Сохранение сессии зависит от CLI.</td></tr>
@@ -733,7 +733,7 @@ scripts/polisade_drift_gate.py
 
   <div class="card" style="margin-top:18px">
     <h3>Если migrate или sync просит решение человека</h3>
-    <p>Начинайте с предпросмотра. В v3.8.16 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
+    <p>Начинайте с предпросмотра. В v3.8.17 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
     <p>Отдельно проверяются неподтверждённые отмены и решения, которые исчезли из списка вопросов после ручной правки статуса, шаблона или флага. Прочитайте блок «ОТЧЁТ ДЛЯ PM» и выполните предлагаемый маршрут: ответить, явно отложить с причиной либо подтвердить исход. Не повторяйте <code>--apply</code> вслепую. Для прямого вызова Python-скрипта в неинтерактивной среде применение требует <code>--apply --yes</code>; <code>--yes</code> подтверждает запись, но не заменяет содержательное решение.</p>
     <p>Полный отчёт сохраняется в <code>.state/pm-reports/</code>. Файл появляется и при предпросмотре, если <code>.state/</code> уже существует; документы и состояние проекта от этого не применяются.</p>
   </div>
@@ -1230,7 +1230,7 @@ docs/specs/SPEC-001/
     </div>
 
     <div class="note" style="font-size:13.8px">
-      <b>Доступность корпуса.</b> В v3.8.16 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
+      <b>Доступность корпуса.</b> В v3.8.17 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
     </div>
   </div>
 
@@ -1477,7 +1477,7 @@ docs/specs/SPEC-001/
 
   <div class="note warn">
     <b>Слияние выполняет VCS-инструмент.</b> Сценарии <code>review-pr</code> и <code>continue</code> используют <code>pr-merge --task</code>. При подтверждённом слиянии инструмент записывает <code>done</code>; при отказе или неподтверждённом результате — причину и остановку в <code>waiting_pm</code>. Повтор merge блокируется до явного признания причины человеком; новые коммиты сами этот запрет не снимают. Не нужно повторять merge другим способом.
-    <p>На GitHub используется squash; в Bitbucket Server флаг <code>--squash</code> принимается без выполнения squash. В v3.8.16 запись <code>done</code> может остаться отдельным локальным коммитом ветки задачи и не попасть в основную ветку, поскольку PR уже смержен. Инструмент отклоняет push ветки на таком завершающем коммите. Состояние PR на сервере и результат записи статуса проверяйте отдельно.</p>
+    <p>На GitHub используется squash; в Bitbucket Server флаг <code>--squash</code> принимается без выполнения squash. В v3.8.17 запись <code>done</code> может остаться отдельным локальным коммитом ветки задачи и не попасть в основную ветку, поскольку PR уже смержен. Инструмент отклоняет push ветки на таком завершающем коммите. Состояние PR на сервере и результат записи статуса проверяйте отдельно.</p>
   </div>
 
   <div class="card" style="margin-top:18px">
@@ -1667,7 +1667,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
 
   <div class="card">
     <h3>Проверьте по публичным исходникам</h3>
-    <p>Эти команды выполняются из корня скачанных исходников релиза v3.8.16. Для диагностики укажите путь к целевому проекту вместо <code>/path/to/project</code>. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
+    <p>Эти команды выполняются из корня скачанных исходников релиза v3.8.17. Для диагностики укажите путь к целевому проекту вместо <code>/path/to/project</code>. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
 <pre class="light"><span class="c"># какие команды есть на самом деле</span>
 ls skills/
 
@@ -2093,14 +2093,14 @@ AC-002  green   tests/acceptance/test_export_pdf.py
 </section>
 
 <footer>
-  <p><b>Polisade Orchestrator</b> — руководство пользователя. Проверено по публичному релизу <b>v3.8.16</b> 16 октября 2026 года. Лицензия Apache 2.0.</p>
+  <p><b>Polisade Orchestrator</b> — руководство пользователя. Проверено по публичному релизу <b>v3.8.17</b> 16 октября 2026 года. Лицензия Apache 2.0.</p>
   <p style="margin-top:8px">
     Репозиторий и релизы: <a href="https://github.com/cryndoc/polisade-orchestrator">github.com/cryndoc/polisade-orchestrator</a> ·
     HTML-исходник: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/main/docs/guide/index.html">docs/guide/index.html</a> ·
-    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/docs/config-reference.md">docs/config-reference.md</a> ·
-    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v3.8.16/skills/">skills/</a>
+    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/docs/config-reference.md">docs/config-reference.md</a> ·
+    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v3.8.17/skills/">skills/</a>
   </p>
-  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.16">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.16/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
+  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.17">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
   <p style="margin-top:8px">Вопросы и помощь по использованию — в Discussions, сообщения об ошибках и запросы функциональности — в Issues репозитория. Пожалуйста, не публикуйте в них внутренние пути, трассировки и данные заказчиков.</p>
 </footer>
 
