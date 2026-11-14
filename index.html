@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="polisade-plugin-version" content="3.8.17">
+<meta name="polisade-plugin-version" content="4.0.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polisade Orchestrator — руководство</title>
 <style>
@@ -153,7 +153,7 @@
 <div class="wrap">
 
 <header>
-  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 3.8.17</div>
+  <div class="kicker" style="font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)">Polisade Orchestrator · руководство пользователя · версия плагина 4.0.0</div>
   <h1>Как устроен Polisade Orchestrator<br><span style="color:var(--muted);font-weight:600;font-size:24px">артефакты, порядок шагов, практика применения</span></h1>
   <p class="sub" style="margin-top:14px">Polisade Orchestrator — плагин для CLI-агента, который помогает пройти путь от требований до изменений в репозитории. Он сохраняет требования, проектные решения и задачи в файлах, затем ведёт работу по циклу <b>реализация → тесты → PR → ревью → слияние</b>. Глубину проработки и степень автономности выбирает команда. Инструкции и Python-скрипты доступны в публичном репозитории.</p>
   <div class="hero-facts">
@@ -194,7 +194,7 @@
       <p>Начните с <a href="#permissions">прав и следов работы</a>, затем прочитайте <a href="#acceptance">о приёмке</a> и <a href="#boundary">об ограничениях</a>. Уточните, кто владеет проверками и какие результаты должны подтверждаться в CI.</p>
     </div>
   </div>
-  <div class="note ok"><b>Проверено 16 октября 2026 года.</b> Основа руководства — публичный релиз <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.17">v3.8.17</a>, от 16 октября 2026 года. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
+  <div class="note ok"><b>Подготовлено для выпуска 4.0.0, 13 ноября 2026 года.</b> Руководство сверено с кодом, подготовленным к выпуску; архивы по ссылкам ниже станут доступны после публикации версии. Примеры ниже учебные: названия проектов, номера PR и результаты тестов условны.</div>
   <p class="mobile-hint">Широкие таблицы и схемы можно прокручивать по горизонтали внутри их рамки.</p>
 </header>
 
@@ -346,10 +346,10 @@
     <div class="card">
       <h3>Что нужно иметь</h3>
       <ul class="plain" style="font-size:14px">
-        <li><b>Репозиторий под git</b> (git 2.25 или новее) и доступ к GitHub или Bitbucket Server — цикл заканчивается PR.</li>
+        <li><b>Репозиторий под git</b> (git 2.25 или новее) и доступ к GitHub или Bitbucket через MCP — цикл заканчивается PR.</li>
         <li><b>Один из CLI-агентов</b> — Claude Code, Qwen CLI, GigaCode CLI или opencode — <b>со своим доступом к модели</b>. Плагин не содержит ни модели, ни ключей: он даёт процесс, а «думает» ваш агент на вашей подписке.</li>
         <li><b>Python 3</b> — на нём детерминированные скрипты (линты, приёмка, диагностика). Сами скрипты используют стандартную библиотеку; зависимости вашего проекта устанавливаются отдельно.</li>
-        <li><b><code>gh</code> с авторизацией</b> — для операций с PR на GitHub; для Bitbucket Server — токен в <code>.env</code>.</li>
+        <li><b><code>gh</code> с авторизацией</b> — для операций с PR на GitHub; для Bitbucket — MCP-сервер Bitbucket, подключённый в настройках вашего агента (настройки подключения MCP живут там, плагин их не читает).</li>
         <li><b>Опционально Codex CLI</b> — единственный поддерживаемый внешний ревьюер: с ним ревью делает не тот же агент, который писал код.</li>
       </ul>
     </div>
@@ -420,7 +420,7 @@ TASK-002 → review · merge остаётся за вами</pre>
     <div class="card" style="border-top:5px solid var(--stop)">
       <h3>Скорее не для вас, если</h3>
       <ul class="plain" style="font-size:14px">
-        <li><b>У вас GitLab.</b> Поддерживаются GitHub (включая Enterprise) и Bitbucket Server; GitLab — нет.</li>
+        <li><b>У вас GitLab.</b> Поддерживаются GitHub (включая Enterprise) и Bitbucket через MCP; GitLab — нет.</li>
         <li><b>В репозитории нет тестов.</b> Регрессия и приёмка — опора всего цикла; без них отсутствует исполняемая проверка поведения проекта.</li>
         <li><b>Нужен доказуемый, аудируемый результат.</b> Инструмент даёт практики, линты и трассируемость, но не машинные гарантии — что именно не гарантируется, разобрано в разделе «Границы и ограничения».</li>
         <li><b>Код нельзя передавать дополнительному инструменту.</b> Независимое ревью отдаёт дифф другому CLI; если это неприемлемо — остаётся режим <code>self</code> (агент проверяет сам себя) или ручное ревью.</li>
@@ -444,7 +444,7 @@ TASK-002 → review · merge остаётся за вами</pre>
           <li><b>Куда уходит код.</b> В модель вашего CLI-агента; при независимом ревью — во второй инструмент, который сам решает, какие файлы прочитать. Режим <code>self</code> исключает дополнительный CLI; основной агент продолжает обращаться к своей модели.</li>
           <li><b>Что с правами.</b> Плагин не создаёт собственную песочницу; права задаются CLI и средой, а список разрешений Claude Code широкий — раздел «Права и аудиторский след» написан специально для этого разговора.</li>
           <li><b>Чего нет.</b> GitLab не поддерживается. Интеграции с трекером нет (кроме ключа задачи в имени файла спецификации). Под Windows — через WSL.</li>
-          <li><b>Что нужно от команды.</b> Репозиторий на GitHub или Bitbucket Server, работающие тесты и один человек, готовый отвечать на вопросы агента в течение дня.</li>
+          <li><b>Что нужно от команды.</b> Репозиторий на GitHub или Bitbucket через MCP, работающие тесты и один человек, готовый отвечать на вопросы агента в течение дня.</li>
         </ul>
       </div>
     </div>
@@ -460,7 +460,7 @@ TASK-002 → review · merge остаётся за вами</pre>
 <section id="install">
 <div class="kicker">Установка</div>
   <h2>Установка и доступы</h2>
-  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на проверенной версии v3.8.17; новые выпуски доступны на странице релизов.</p>
+  <p class="sub">Выберите сборку для своего CLI. В Claude Code, Qwen и GigaCode команды имеют вид <code>/polisade:&lt;имя&gt;</code>, в opencode — <code>/polisade-&lt;имя&gt;</code>. Ниже ссылки закреплены на версии v4.0.0 и станут доступны после её публикации; опубликованные выпуски доступны на странице релизов.</p>
 
   <h3 style="margin-top:22px">Claude Code</h3>
 <pre>/plugin marketplace add cryndoc/polisade-orchestrator
@@ -470,14 +470,14 @@ TASK-002 → review · merge остаётся за вами</pre>
 
   <h3 style="margin-top:22px">Qwen CLI</h3>
 <pre>mkdir -p ~/.qwen/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-qwen.zip -o /tmp/polisade-qwen.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v4.0.0/polisade-qwen.zip -o /tmp/polisade-qwen.zip
 unzip /tmp/polisade-qwen.zip -d ~/.qwen/extensions/
 qwen
 /polisade:init MyProject</pre>
 
   <h3 style="margin-top:22px">GigaCode CLI</h3>
 <pre>mkdir -p ~/.gigacode/extensions
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v4.0.0/polisade-gigacode.zip -o /tmp/polisade-gigacode.zip
 unzip /tmp/polisade-gigacode.zip -d ~/.gigacode/extensions/</pre>
   <p>У этой сборки есть дополнительный шаг: из <b>корня своего проекта</b>, в обычном терминале выполните:</p>
 <pre>bash ~/.gigacode/extensions/polisade/setup-project.sh</pre>
@@ -485,13 +485,13 @@ unzip /tmp/polisade-gigacode.zip -d ~/.gigacode/extensions/</pre>
 <pre>gigacode
 /polisade:init MyProject
 /polisade:init-verify</pre>
-  <p class="sub">Копия в проекте нужна из-за ограничений доступа к каталогу расширения. После каждого обновления повторяйте <code>setup-project.sh</code> и коммитьте обновлённую копию. Скрипт заменяет <code>.polisade/bin/</code>, поэтому собственные файлы туда не добавляйте. В сборке GigaCode по умолчанию выбран Bitbucket Server. Если используете GitHub, настройте <code>settings.vcsProvider</code> соответственно.</p>
-  <div class="note warn"><b>Обновление существующего проекта.</b> При обновлении важно обновить и проектную копию скриптов: ревью использует новые параметры и два шаблона задания ревьюеру. Старая копия остановит вызов. Выполните <code>setup-project.sh</code>, затем <code>/polisade:migrate</code> для предпросмотра, примените согласованные изменения и запустите <code>/polisade:doctor</code>. Повторный <code>init</code> для обновления не нужен. Проверка <code>doctor</code> сверяет копию с её собственным манифестом и версией состояния проекта; одного зелёного результата недостаточно, если копия и состояние всё ещё относятся к прежней версии.</div>
+  <p class="sub">Копия в проекте нужна из-за ограничений доступа к каталогу расширения. После каждого обновления повторяйте <code>setup-project.sh</code> и коммитьте обновлённую копию. Скрипт заменяет <code>.polisade/bin/</code>, поэтому собственные файлы туда не добавляйте. В сборке GigaCode по умолчанию выбран <code>bitbucket-mcp</code>; подключите MCP-сервер Bitbucket в настройках агента. Если используете GitHub, настройте <code>settings.vcsProvider</code> соответственно.</p>
+  <div class="note warn"><b>Обновление существующего проекта.</b> При обновлении важно обновить и проектную копию скриптов: ревью использует новые параметры инструмента проверки и шаблоны заданий ревьюеру и исполнителю исправлений. Со старой копией ревью остановится перед слиянием. Выполните <code>setup-project.sh</code>, затем <code>/polisade:migrate</code> для предпросмотра, примените согласованные изменения и запустите <code>/polisade:doctor</code>. Повторный <code>init</code> для обновления не нужен. Проверка <code>doctor</code> сверяет копию с её собственным манифестом и версией состояния проекта; одного зелёного результата недостаточно, если копия и состояние всё ещё относятся к прежней версии.</div>
 
   <h3 style="margin-top:22px">opencode</h3>
   <p>До распаковки сохраните существующий <code>~/.config/opencode/AGENTS.md</code>, если он есть: архив содержит файл с таким же именем.</p>
 <pre>mkdir -p ~/.config/opencode
-curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v3.8.17/polisade-opencode.zip -o /tmp/polisade-opencode.zip
+curl -fL https://github.com/cryndoc/polisade-orchestrator/releases/download/v4.0.0/polisade-opencode.zip -o /tmp/polisade-opencode.zip
 unzip /tmp/polisade-opencode.zip -d ~/.config/opencode/
 opencode
 /polisade-init MyProject</pre>
@@ -537,10 +537,9 @@ scripts/polisade_drift_gate.py
   <h3 style="margin-top:22px">Доступ к репозиторию</h3>
   <div class="grid2">
     <div class="card"><h3>GitHub</h3><p>Нужен авторизованный <code>gh</code>: выполните <code>gh auth login</code>. Поддерживается GitHub Enterprise. Проверяйте доступ командой <code>/polisade:doctor</code>.</p></div>
-    <div class="card"><h3>Bitbucket Server</h3><p>Операции выполняются через REST API. В образце конфигурации <code>.env.example</code> описаны URL, токен и способ авторизации; поддерживаются два адреса сервера. Нужная конфигурация выбирается по адресу <code>origin</code>. Проверка — <code>/polisade:doctor --vcs</code>.</p></div>
+    <div class="card"><h3>Bitbucket (MCP)</h3><p>Операции выполняются через MCP-сервер Bitbucket, который вы ставите и настраиваете в своём агенте: адрес, TLS и токены MCP живут там, плагин эти настройки не хранит и не читает. Для git он читает <code>remote.origin.url</code>; используйте URL без встроенных паролей и токенов. Инструмент печатает готовый вызов <code>mcp_call</code>, модель выполняет его, <code>pr-verify</code> проверяет факты через git: для создания PR нужна ссылка PR на ожидаемую голову; без неё исход остаётся <code>mcp_reported</code> и ждёт разбора. Без git-доказательства мержа записи после него откладываются. Проверка — <code>/polisade:doctor --vcs</code> с успешным ответом MCP на пробу <code>whoami</code>, выполняемую агентом; у отдельного Python-скрипта doctor такой пробы нет. Его код 0 при WARN не означает готовность: без git-доступа или ответа MCP работу с PR не начинайте.</p></div>
   </div>
-  <p>Не помещайте реальные токены в коммиты. Строка <code>.env</code> в шаблоне <code>.gitignore</code> закомментирована — проверьте фактическое правило проекта. У <code>polisade_vcs.py</code> есть параметр <code>--env-file</code> для файла вне рабочей копии; он задаётся для конкретного вызова и не распространяется автоматически на все команды плагина. Если выбран такой способ, согласуйте его со всеми вызывающими сценариями.</p>
-  <p class="sub">Для Bitbucket проверяются TLS-сертификаты, перенаправления запросов не выполняются. Свой центр сертификации задаётся через <code>POLISADE_VCS_CA</code>; резервные переменные — <code>SSL_CERT_FILE</code> и <code>REQUESTS_CA_BUNDLE</code>. Поведение GitHub зависит от <code>gh</code>. Подробности — в публичном справочнике конфигурации.</p>
+  <p class="sub">Поведение GitHub зависит от <code>gh</code>. Подробности — в публичном справочнике конфигурации.</p>
 
   <h3 style="margin-top:22px">Обновление и удаление</h3>
   <p>Claude Code обновляется через управление плагинами. Для остальных CLI замените установленную сборку свежим архивом; перед заменой сохраните свои изменения, проверьте состав каталога после распаковки, чтобы в нём не остались файлы прежней версии. Для GigaCode также обновите <code>.polisade/bin/</code>. Затем просмотрите <code>/polisade:migrate</code>, примените согласованные изменения и выполните <code>/polisade:doctor</code>.</p>
@@ -562,7 +561,7 @@ scripts/polisade_drift_gate.py
   </div>
   <div class="tablewrap" tabindex="0" role="region" aria-label="Таблица; на узком экране прокручивается по горизонтали"><table>
     <tr><th>Где искать</th><th>Что сохраняется</th><th>Ограничение</th></tr>
-    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v3.8.17 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
+    <tr><td>Git и платформа PR</td><td>Документы, код, тесты и коммиты; описание PR и комментарии ревью. Для памяти проекта, счётчиков, базы приёмки и журнала сессий предусмотрено хранение в git.</td><td>Запись в файл ещё не означает, что она закоммичена. В v4.0.0 журнал <code>review-pr</code> может остаться в корне без коммита.</td></tr>
     <tr><td><code>.state/pm-reports/</code></td><td>Полные текстовые отчёты <code>migrate</code>, <code>sync</code> и <code>doctor</code>, а также указатель на последний отчёт каждой команды.</td><td>Локальные файлы, по 20 последних отчётов на команду. Это не общий журнал всех действий агента.</td></tr>
     <tr><td><code>.polisade/tmp/</code></td><td>Временные задания ревьюерам и результаты тестов перед ревью.</td><td>Не предназначены для коммита и долговременного аудита.</td></tr>
     <tr><td>Сессия CLI</td><td>Вывод инструментов и список целей правки.</td><td>Плагин не ведёт полного неизменяемого журнала команд и версий моделей. Сохранение сессии зависит от CLI.</td></tr>
@@ -703,7 +702,7 @@ scripts/polisade_drift_gate.py
       <tr><th style="width:210px">Ключ</th><th style="width:130px">По умолчанию</th><th>Что меняет</th></tr>
       <tr><td><code>gitBranching</code></td><td><code>true</code></td><td>Включает ветвление по родителю задачи: у задач от PLAN отдельные ветки; задачи одного FEAT могут использовать общую ветку. Выключение означает работу в текущей ветке.</td></tr>
       <tr><td><code>workspaceMode</code></td><td><code>worktree</code></td><td>Отдельное рабочее дерево в <code>.worktrees/</code>. Разделяет файлы и ветки, но не права процессов. <code>inplace</code> — один checkout, режим для простых случаев.</td></tr>
-      <tr><td><code>vcsProvider</code></td><td><code>github</code></td><td><code>github</code> — через <code>gh</code>. <code>bitbucket-server</code> — REST API для самостоятельно развёрнутого Bitbucket, с маршрутизацией по хосту удалённого репозитория.</td></tr>
+      <tr><td><code>vcsProvider</code></td><td><code>github</code></td><td><code>github</code> — через <code>gh</code>. <code>bitbucket-mcp</code> — Bitbucket через MCP-сервер, который PM подключает в своём агенте: плагин не хранит и не читает настройки подключения MCP; Git remote <code>origin</code> читает для идентификации репозитория и сверки. Проекты со снятым <code>bitbucket-server</code> переводит <code>/polisade:migrate --apply</code>.</td></tr>
       <tr><td><code>reviewer.mode</code> / <code>reviewer.cli</code></td><td><code>auto</code> / <code>auto</code></td><td>Кто делает независимое ревью и на чём. Таблица режимов — в разделе <a href="#cycle">«Цикл одной задачи»</a>.</td></tr>
       <tr><td><code>testing.*</code> в <code>knowledge.json</code></td><td><code>strategy: tdd-first</code>, команды не заданы</td><td>Дисциплина тест-авторинга (<code>tdd-first</code> или <code>test-along</code>) и команды прогона: <code>testCommand</code>, <code>typeCheckCommand</code>, <code>lintCommand</code>, список известных нестабильных тестов. Живёт не в настройках проекта, а в памяти проекта — потому что это знание о репозитории.</td></tr>
       <tr><td><b>Гейты проекта</b> в <code>knowledge.json → testing</code></td><td>команды не заданы</td><td>Ваши собственные проверки, которые цикл зовёт после регрессии. Плагин ничего не парсит и не классифицирует: проект объявляет команду, она <b>сама</b> возвращает ненулевой код на нужном пороге. Четыре гейта — <code>securityCommand</code> (шаг 2e), <code>apiCompatCommand</code> + <code>apiCompatPaths</code> (шаг 2f, срабатывает только если дифф задел контрактные пути), <code>migrationTestCommand</code> + <code>migrationPaths</code>, <code>performanceCommand</code>; у каждого свой <code>…Mode: block | warn</code>. Отсутствие инструмента и таймаут — <b>не находки</b> и никогда не блокируют.</td></tr>
@@ -733,9 +732,18 @@ scripts/polisade_drift_gate.py
 
   <div class="card" style="margin-top:18px">
     <h3>Если migrate или sync просит решение человека</h3>
-    <p>Начинайте с предпросмотра. В v3.8.17 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
+    <p>Начинайте с предпросмотра. В v4.0.0 применённые изменения ещё не означают успешного завершения: при неразрешённых вопросах инструмент может вернуть код <code>3</code> с <code>applied: true</code>. Файлы уже изменены, но коммит, push и создание PR останавливаются до решения человека.</p>
     <p>Отдельно проверяются неподтверждённые отмены и решения, которые исчезли из списка вопросов после ручной правки статуса, шаблона или флага. Прочитайте блок «ОТЧЁТ ДЛЯ PM» и выполните предлагаемый маршрут: ответить, явно отложить с причиной либо подтвердить исход. Не повторяйте <code>--apply</code> вслепую. Для прямого вызова Python-скрипта в неинтерактивной среде применение требует <code>--apply --yes</code>; <code>--yes</code> подтверждает запись, но не заменяет содержательное решение.</p>
     <p>Полный отчёт сохраняется в <code>.state/pm-reports/</code>. Файл появляется и при предпросмотре, если <code>.state/</code> уже существует; документы и состояние проекта от этого не применяются.</p>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Переход на Bitbucket через MCP в 4.0.0</h3>
+    <p>Режим <code>bitbucket-server</code> удалён. Сначала сохраните изменения коммитом и обновите плагин; в GigaCode повторите <code>setup-project.sh</code>, проверьте и закоммитьте <code>.polisade/bin/</code>. Выполните предпросмотр <code>/polisade:migrate</code> и применение <code>/polisade:migrate --apply</code>: провайдер станет <code>bitbucket-mcp</code>, версия состояния — <code>4.0.0</code>.</p>
+    <p>Сам переход проходит с кодом <code>0</code>, без отдельного вопроса PM; совет приходит строкой в <code>next_steps</code>. После применения повторный предпросмотр возвращает <code>up_to_date</code>. Другие вопросы проекта по-прежнему требуют решения человека.</p>
+    <p>Подключите MCP-сервер Bitbucket в своём агенте: адрес, токен, TLS и разрешения задаются там. <b>MCP должен смотреть на тот же Bitbucket, что и <code>origin</code> проекта.</b> Продукт этого не сверяет; при разных серверах запись через MCP не докажется через git.</p>
+    <p>Удалите все старые <code>BITBUCKET_*</code>, <code>POLISADE_VCS_INSECURE</code> и <code>POLISADE_VCS_CA</code> из <b>обоих файлов проекта: <code>.env</code> и <code>.env.example</code></b>. Миграция их не читает и не меняет. Старые <code>BITBUCKET_*</code> в <code>.env.example</code> вызывают отказ <code>/polisade:init-verify</code> с советом повторить init. Для обновлённого проекта этот совет неверен: удалите старые строки; если в <code>.env.example</code> нет <code>POLISADE_PYTHON=</code>, добавьте её по текущему шаблону <code>skills/init/templates/env.example</code>, сохранив прочие настройки проекта. Существующую подмену интерпретатора сохраните. Затем повторите проверку, не запускайте init заново. Общий <code>SSL_CERT_FILE</code> удаляйте только если он был нужен исключительно старой интеграции. Подробности — в <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v4.0.0/RELEASE_NOTES.md#как-перейти">шагах перехода</a>.</p>
+    <p>Завершите проверкой <code>/polisade:doctor --vcs</code>: нужны git-доступ к <code>origin</code> и успешная проба MCP <code>whoami</code>, которую по готовому вызову выполняет агент. Python-скрипт doctor сам MCP не вызывает; код 0 при WARN не подтверждает готовность. При недоступном git или MCP остановитесь до PR-операций. GitHub через <code>gh</code> работает как прежде.</p>
   </div>
 
   <h3 style="margin-top:26px">Проверки, которые можно включить в CI</h3>
@@ -760,8 +768,9 @@ scripts/polisade_drift_gate.py
         <tr><td>Сколько PR на функциональное изменение</td><td>Задачи от брифа — одна ветка и один PR; задачи от плана — свой PR на каждую</td><td>Определяет размер PR и нагрузку на ревью. Хотите мелкие PR — ведите работу через <code>roadmap</code></td></tr>
         <tr><td>Кто выполняет слияние</td><td><code>implement</code> (стоп перед merge) · <code>continue</code> (выполняет слияние сам при оценке ≥ 8)</td><td>При защищённой ветке автоматическое слияние всё равно зависит от правил платформы PR — см. карточку выше</td></tr>
         <tr><td>Кто делает ревью</td><td><code>auto</code> · <code>external</code> (только Codex CLI) · <code>self</code> · <code>off</code></td><td>В Claude Code без Codex используется отдельный запуск текущего CLI, если он доступен. В остальных сборках ревью идёт через субагента; <code>off</code> в протоколе выбора ревьюера означает передачу открытого PR человеку</td></tr>
+        <tr><td>Куда идут PR задач</td><td>В основную ветку (по умолчанию) · <code>settings.branchModel: intent</code> — в ветку интента <code>intent/&lt;родитель&gt;</code>, в основную ветку — один PR интента</td><td>Режим интента включается полем в <code>.state/PROJECT_STATE.json</code> и требует <code>gitBranching: true</code> и удалённого <code>origin</code>. PR интента <code>review-pr</code> проверяет как целое инструментом. Спецификация и задачи пока хранятся в основной ветке</td></tr>
         <tr><td>Изоляция работы</td><td><code>workspaceMode: worktree</code> (по умолчанию) · <code>inplace</code></td><td>Путь рабочего дерева возвращает инструмент. При отказе подготовки дерева прочитайте причину; не продолжайте реализацию в основной ветке</td></tr>
-        <tr><td>Где живут секреты</td><td><code>.env</code> в репозитории · файл снаружи через <code>--env-file</code></td><td>В шаблоне <code>.gitignore</code> строка <code>.env</code> закомментирована — файл в репозитории виден и git, и модели</td></tr>
+        <tr><td>Где живут секреты</td><td>В настройках вашего инструмента доступа (<code>gh</code>, MCP-сервер), не в плагине</td><td>Плагин не хранит и не читает токены — креды не попадают ни в репозиторий, ни в состояние проекта</td></tr>
         <tr><td>Какие файлы состояния хранятся в git</td><td>Проверить четыре строки-исключения в <code>.gitignore</code> · дополнить их <code>/polisade:migrate --apply</code></td><td>От этого зависит, будут ли у коллег ваш стек и команды тестов, переживёт ли база приёмки чужой раннер и будет ли чем подтвердить ход работы при аудите</td></tr>
         <tr><td>Задача сразу или только запись</td><td><code>debt.autoCreateTask</code>, <code>chore.autoCreateTask</code></td><td>Влияет на то, насколько быстро бэклог превращается в работу</td></tr>
         <tr><td>Формат спецификации</td><td>Классический (по умолчанию) · change-spec</td><td>Второй сужает радиус правки, но добавляет требований и остановок — не для первого знакомства</td></tr>
@@ -855,11 +864,12 @@ scripts/polisade_drift_gate.py
       <tr><th style="width:290px">Симптом</th><th>Что это значит и что делать</th></tr>
       <tr><td>Непонятно, что происходит в проекте</td><td><code>/polisade:state</code> — обзор: что готово к работе, где можно создать задачи, что ждёт PM, что заблокировано, какие дизайн-пакеты и ADR есть.</td></tr>
       <tr><td>Цикл всё время останавливается</td><td>Смотрите <code>waiting_pm</code>: <code>/polisade:questions</code> покажет открытые вопросы по артефактам, <code>/polisade:unblock</code> проведёт по ним по одному.</td></tr>
+      <tr><td>Задача остановилась: «ТРУНК ПРОЕКТА НЕ ОБЪЯВЛЕН»</td><td>Репозиторий не может сам назвать основную ветку: например, работа идёт в <code>develop</code> без ветки по умолчанию на удалённом репозитории или есть и <code>main</code>, и <code>master</code>. Объявите её один раз командой из блока: <code>polisade_vcs.py trunk --declare &lt;ветка&gt;</code>. <code>/polisade:doctor</code> в проверке <code>trunk</code> печатает ту же команду. Объявление хранится в неотслеживаемом <code>.state/PROJECT_STATE.json</code> и действует для этого клона.</td></tr>
       <tr><td>Реестр разошёлся с файлами</td><td><code>/polisade:sync --apply</code> — пересборка состояния из артефактов (без флага — предпросмотр). Обычные причины: ручные правки Markdown, merge чужой ветки, работа в worktree (там своя копия реестра, основной за время задачи устаревает).</td></tr>
       <tr><td>Артефакт так и остался под семенем (<code>TASK-k7m2q4xz</code>)</td><td>Номера выдаются только на основной ветке. На ветке это норма — <code>sync</code> в блоке <code>numbering</code> печатает <code>pending</code> и причину («номера выдаются только на <code>main</code>»). После слияния запустите <code>/polisade:sync --apply</code> на транке. Если и там не выдался — смотрите <code>seed_problems</code> и <code>numbering_failed</code>: оба возвращают ненулевой код и называют файл.</td></tr>
       <tr><td>Два артефакта получили один номер</td><td>Так бывает, если двое выдали номер на своих <code>main</code> до пуша. После <code>pull</code> следующий <code>sync</code> упирается в <code>duplicate_ids</code> и называет оба файла; когда лечение однозначно, он перенумеровывает поздний сам. Номер сменить можно, семя — нет, поэтому постоянный идентификатор можно разрешить командой <code>polisade_id.py resolve &lt;семя&gt;</code> из установленной сборки.</td></tr>
       <tr><td>Проект на старой схеме после обновления плагина</td><td><code>/polisade:migrate --apply</code>, затем <code>/polisade:doctor</code>. Если в состоянии есть испорченная запись, миграция назовёт её и остановится, а не упадёт трейсбеком.</td></tr>
-      <tr><td>Под GigaCode ломается первый же прогон</td><td>Проверьте копию в <code>.polisade/bin</code>: она может отсутствовать или быть устаревшей — повторите <code>bash ~/.gigacode/extensions/polisade/setup-project.sh</code> из корня проекта (<code>doctor</code> покажет расхождение с манифестом и имя несошедшегося файла), Проверьте также <code>settings.vcsProvider</code>: значение <code>github</code> требует <code>gh</code>, значение <code>bitbucket-server</code> — настройки Bitbucket.</td></tr>
+      <tr><td>Под GigaCode ломается первый же прогон</td><td>Проверьте копию в <code>.polisade/bin</code>: она может отсутствовать или быть устаревшей — повторите <code>bash ~/.gigacode/extensions/polisade/setup-project.sh</code> из корня проекта (<code>doctor</code> покажет расхождение с манифестом и имя несошедшегося файла), Проверьте также <code>settings.vcsProvider</code>: значение <code>github</code> требует <code>gh</code>, значение <code>bitbucket-mcp</code> — подключённый MCP-сервер Bitbucket в настройках агента.</td></tr>
       <tr><td><code>doctor</code> сообщает о замусоренных разрешениях</td><td>Это предупреждение, а не блокировка: проверка смотрит и проектный, и пользовательский файл настроек агента и ловит авто-накопленные разрешения. Домашний путь в отчёте маскируется. Нечитаемый файл помечается как проблема, а не считается чистым.</td></tr>
       <tr><td>Ревью не запускается</td><td>Сначала прочитайте отказ: возможны неподходящий статус задачи, расхождение индекса, устаревшая копия скриптов либо недоступный ревьюер. В Claude Code режим <code>external</code> требует Codex CLI. Установите его, либо переключитесь на <code>self</code>, либо оставьте <code>auto</code>. <code>/polisade:doctor</code> покажет, что именно не найдено.</td></tr>
       <tr><td>Push прошёл «молча», а PR не появился</td><td>Проверка push сравнивает SHA удалённой ветки. Задача уйдёт в <code>waiting_pm</code> с ответом сервера: чаще всего это отклонённый хук или права. Разовые операции — через <code>/polisade:pr</code>.</td></tr>
@@ -1069,7 +1079,7 @@ scripts/polisade_drift_gate.py
       <tr>
         <td><b>PR</b><br><span class="chip det">скрипт</span></td>
         <td><code>continue</code>, <code>implement</code>, <code>/polisade:pr</code></td>
-        <td>GitHub или Bitbucket Server</td>
+        <td>GitHub или Bitbucket через MCP</td>
         <td>Место, где сходятся код, тесты, обновлённые артефакты и комментарий ревью с оценкой.</td>
         <td>merge</td>
       </tr>
@@ -1230,7 +1240,7 @@ docs/specs/SPEC-001/
     </div>
 
     <div class="note" style="font-size:13.8px">
-      <b>Доступность корпуса.</b> В v3.8.17 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
+      <b>Доступность корпуса.</b> В v4.0.0 <code>design-corpus</code> доступен в Claude Code, Qwen, GigaCode и opencode. Сначала включите <code>/polisade:migrate --enable=designCorpus --apply</code>, затем вызовите <code>/polisade:design-corpus SPEC-NNN --dry-run</code>. Для переноса существующих дизайн-пакетов используйте <code>--adopt</code> и просмотрите план. Сборка GigaCode читает необходимые справочники из копии в проекте. Качество синтеза зависит от модели; наличие команды во всех сборках не означает одинакового качества результата.
     </div>
   </div>
 
@@ -1467,17 +1477,17 @@ docs/specs/SPEC-001/
     <h3>Как выполняется ревью</h3>
     <ol class="steps">
       <li>До запуска ревьюера <code>polisade_review_pr_guard.py</code> проверяет статус задачи, находит её рабочее дерево и запускает <code>testing.testCommand</code> из технического контекста этого дерева.</li>
-      <li>Тот же инструмент записывает готовое задание в <code>.polisade/tmp/review-brief-TASK-….md</code>. Агент передаёт ревьюеру путь к файлу. Контрольная строка задания должна вернуться в отчёте; несовпадение требует остановки.</li>
+      <li>Тот же инструмент записывает готовое задание в <code>.polisade/tmp/review-brief-TASK-….md</code>. Агент передаёт ревьюеру путь к файлу. Ревьюер вписывает контрольную строку задания в файл ревью, а инструмент находит её и печатает готовый вердикт сверки; несовпадение останавливает работу до слияния.</li>
       <li>Ревьюер читает результат тестов, анализирует изменения и публикует оценку. Он не запускает тесты повторно и не переключает ветки. Повтор прогона предусмотрен перед второй итерацией после исправлений.</li>
       <li>При оценке не ниже 8 из 10 сценарий ревью допускает merge; при более низкой оценке предусмотрены исправления и повторная проверка. После двух неудачных итераций требуется решение человека.</li>
     </ol>
     <p>Строка результата различает успешный прогон, ошибки, отсутствие команды и устаревший прогон. Нет рабочего дерева, неподдерживаемая форма команды или обрыв по таймауту — основание считать тесты непроверенными. Результат хранится в <code>.polisade/tmp/review-tests-TASK-….json</code>. Проверка свежести учитывает коммит и изменения отслеживаемых файлов; новые неотслеживаемые файлы в этот отпечаток не входят.</p>
-    <p class="sub">Контрольную строку задания сверяет модель. Сам факт её совпадения не доказывает полноту ревью. Проходной балл также не заменяет результат CI и правила защиты ветки.</p>
+    <p class="sub">Контрольную строку задания сверяет инструмент. Если для PR было записано задание ревьюеру, слияние без свежей сверки «целиком» инструмент не выполняет: запрос на сервер не отправляется, задача ждёт решения человека. Совпадение строки показывает, что задание дошло целиком, но не доказывает полноту ревью и не защищает от умышленной правки служебных файлов. Проходной балл также не заменяет результат CI и правила защиты ветки.</p>
   </div>
 
   <div class="note warn">
     <b>Слияние выполняет VCS-инструмент.</b> Сценарии <code>review-pr</code> и <code>continue</code> используют <code>pr-merge --task</code>. При подтверждённом слиянии инструмент записывает <code>done</code>; при отказе или неподтверждённом результате — причину и остановку в <code>waiting_pm</code>. Повтор merge блокируется до явного признания причины человеком; новые коммиты сами этот запрет не снимают. Не нужно повторять merge другим способом.
-    <p>На GitHub используется squash; в Bitbucket Server флаг <code>--squash</code> принимается без выполнения squash. В v3.8.17 запись <code>done</code> может остаться отдельным локальным коммитом ветки задачи и не попасть в основную ветку, поскольку PR уже смержен. Инструмент отклоняет push ветки на таком завершающем коммите. Состояние PR на сервере и результат записи статуса проверяйте отдельно.</p>
+    <p>На GitHub обычные PR задач из <code>review-pr</code> и <code>continue</code> сливаются через squash; PR интента — merge-коммитом. Прямой <code>pr-merge</code> без <code>--squash</code> тоже создаёт merge-коммит. В режиме <code>bitbucket-mcp</code> стратегию слияния выбирает сервер: флаг <code>--squash</code> её не задаёт. Мерж проходит через чтение PR, проверку возможности слияния и вызов MCP; результат сверяется через git. Если сервер удалил ссылку PR после мержа, для доказательства нужен единственный серверный коммит мержа с номером PR и сохранённой головой во втором родителе; squash этим способом не подтверждается. Недоказанный исход ждёт решения человека. Запись <code>done</code> остаётся отдельным локальным коммитом ветки задачи, поскольку PR уже смержен; инструмент отклоняет push ветки на таком завершающем коммите. Кроме того, после подтверждённого слияния инструмент сохраняет отметку о нём в служебном каталоге git, и команды статуса читают задачу как <code>done</code> даже после удаления её рабочего дерева. В файл задачи в основной ветке <code>done</code> записывает <code>/polisade:sync --apply</code> после получения слияния. Отметка видна только в этом клоне.</p>
   </div>
 
   <div class="card" style="margin-top:18px">
@@ -1627,7 +1637,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
           <tr><td><code>polisade_id.py</code></td><td>идентичность артефакта: чеканка семени, разрешение семени в текущий ID (<code>resolve</code>), список ещё не пронумерованных</td></tr>
           <tr><td><code>polisade_migrate.py</code></td><td>перевод состояния на новую схему</td></tr>
           <tr><td><code>polisade_doctor.py</code></td><td>диагностика проекта и окружения</td></tr>
-          <tr><td><code>polisade_vcs.py</code></td><td>операции с PR: GitHub через <code>gh</code>, Bitbucket Server через REST</td></tr>
+          <tr><td><code>polisade_vcs.py</code></td><td>операции с PR: GitHub через <code>gh</code>, Bitbucket через MCP-сервер (<code>bitbucket-mcp</code>)</td></tr>
           <tr><td><code>polisade_drift_gate.py</code></td><td>детект расхождения документов и кода, для CI</td></tr>
           <tr><td><code>polisade_corpus_io.py</code></td><td>единственный писатель живого корпуса: атомарность, блокировка, резервная копия</td></tr>
           <tr><td><code>polisade_migrate_silo.py</code></td><td>перевод пакета <code>DESIGN-NNN-*/</code> в живой корпус (предпросмотр по умолчанию); вручную звать не нужно — его ведёт <code>/polisade:design-corpus --adopt</code></td></tr>
@@ -1667,7 +1677,7 @@ python3 -m pytest tests/acceptance/test_export_pdf.py::test_empty_report_422 -q
 
   <div class="card">
     <h3>Проверьте по публичным исходникам</h3>
-    <p>Эти команды выполняются из корня скачанных исходников релиза v3.8.17. Для диагностики укажите путь к целевому проекту вместо <code>/path/to/project</code>. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
+    <p>Эти команды выполняются из корня скачанных исходников релиза v4.0.0. Для диагностики укажите путь к целевому проекту вместо <code>/path/to/project</code>. В целевой проект плагин не копирует всё дерево <code>skills/</code> и <code>tools/</code>.</p>
 <pre class="light"><span class="c"># какие команды есть на самом деле</span>
 ls skills/
 
@@ -1740,7 +1750,7 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 git add .gitignore requirements-dev.txt tests/
 git commit -m "Add project skeleton"</pre>
-        <p style="font-size:14px">Создайте пустой удалённый репозиторий на GitHub или Bitbucket Server, подключите его как <code>origin</code> и отправьте начальный коммит средствами своего git-клиента. До автоматического цикла проверьте доступ к PR. Окружение здесь создано вне репозитория: оно не попадёт в коммит и будет доступно при запуске из worktree. Запускайте CLI из этого же активированного терминала. Для воспроизводимого проекта зафиксируйте версии зависимостей.</p>
+        <p style="font-size:14px">Создайте пустой удалённый репозиторий на GitHub или Bitbucket через MCP, подключите его как <code>origin</code> и отправьте начальный коммит средствами своего git-клиента. До автоматического цикла проверьте доступ к PR. Окружение здесь создано вне репозитория: оно не попадёт в коммит и будет доступно при запуске из worktree. Запускайте CLI из этого же активированного терминала. Для воспроизводимого проекта зафиксируйте версии зависимостей.</p>
         <div class="note ok" style="font-size:13.5px"><b>Практика 1.</b> Сначала проверьте запуск тестов на минимальном тесте окружения. Такой тест подтверждает работоспособность запуска, а не качество будущей функции. Весь цикл опирается на регрессию: если запускать тесты нечем, шаг проверки превращается в формальность, а ревью остаётся единственным фильтром.</div>
       </div>
     </div>
@@ -1752,7 +1762,7 @@ git commit -m "Add project skeleton"</pre>
         <div class="meta"><code>init</code> · <code>init-verify</code></div>
 <pre>/polisade:init ShortLink
 /polisade:init-verify</pre>
-        <p style="font-size:14px">Появились <code>.state/</code>, <code>docs/</code>, <code>backlog/</code>, <code>tasks/</code>, шаблоны и правила для агента. <code>init</code> определяет провайдера (в GigaCode по умолчанию Bitbucket Server), сканирует маркеры стека и сохраняет найденное в памяти проекта. Отчёт может выглядеть так:</p>
+        <p style="font-size:14px">Появились <code>.state/</code>, <code>docs/</code>, <code>backlog/</code>, <code>tasks/</code>, шаблоны и правила для агента. <code>init</code> определяет провайдера (в GigaCode по умолчанию <code>bitbucket-mcp</code>), сканирует маркеры стека и сохраняет найденное в памяти проекта. Отчёт может выглядеть так:</p>
 <pre class="light">Detected stack: Python, pytest
   testing.testCommand: python3 -m pytest
   (saved to .state/knowledge.json)</pre>
@@ -2093,14 +2103,14 @@ AC-002  green   tests/acceptance/test_export_pdf.py
 </section>
 
 <footer>
-  <p><b>Polisade Orchestrator</b> — руководство пользователя. Проверено по публичному релизу <b>v3.8.17</b> 16 октября 2026 года. Лицензия Apache 2.0.</p>
+  <p><b>Polisade Orchestrator</b> — руководство пользователя. Подготовлено для выпуска <b>v4.0.0</b> 13 ноября 2026 года; ссылки на версию станут доступны после публикации. Лицензия Apache 2.0.</p>
   <p style="margin-top:8px">
     Репозиторий и релизы: <a href="https://github.com/cryndoc/polisade-orchestrator">github.com/cryndoc/polisade-orchestrator</a> ·
     HTML-исходник: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/main/docs/guide/index.html">docs/guide/index.html</a> ·
-    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/docs/config-reference.md">docs/config-reference.md</a> ·
-    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v3.8.17/skills/">skills/</a>
+    схема всех настроек: <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v4.0.0/docs/config-reference.md">docs/config-reference.md</a> ·
+    исходники команд: <a href="https://github.com/cryndoc/polisade-orchestrator/tree/v4.0.0/skills/">skills/</a>
   </p>
-  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v3.8.17">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v3.8.17/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
+  <p style="margin-top:8px">Основания сверки: <a href="https://github.com/cryndoc/polisade-orchestrator/releases/tag/v4.0.0">страница релиза</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v4.0.0/cli-capabilities.yaml">возможности CLI</a>, <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v4.0.0/skills/review-pr/SKILL.md">протокол ревью</a> и <a href="https://github.com/cryndoc/polisade-orchestrator/blob/v4.0.0/tools/qwen-overlay/commands/polisade/review-pr.md">его вариант для Qwen</a>. Все ссылки ведут в публичный проект.</p>
   <p style="margin-top:8px">Вопросы и помощь по использованию — в Discussions, сообщения об ошибках и запросы функциональности — в Issues репозитория. Пожалуйста, не публикуйте в них внутренние пути, трассировки и данные заказчиков.</p>
 </footer>
 
