@@ -1,0 +1,23 @@
+title: "[Idea] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!NOTE]
+        > Rough ideas are welcome here. Once an idea firms up into a concrete
+        > ask, file it as a **[feature request](https://github.com/cryndoc/polisade-orchestrator/issues/new/choose)**.
+        > Keep posts free of internal or sensitive data — Discussions are public.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What's painful or missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Rough idea
+      description: How might polisade address it? No need to be precise.
+    validations:
+      required: false

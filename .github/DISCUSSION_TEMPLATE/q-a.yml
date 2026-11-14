@@ -1,0 +1,31 @@
+title: "[Q&A] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > Keep your question free of internal or sensitive data — private
+        > project names, paths, hostnames, proprietary stack traces, secrets
+        > or tokens, and customer-identifying information. **Discussions here
+        > are public.**
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      description: Describe your goal and what's blocking you.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: CLI (Claude Code / Qwen CLI / GigaCode CLI) + version, polisade version, OS.
+    validations:
+      required: false
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you've already tried
+      description: Commands you ran, docs you read, results you got. Redact anything sensitive.
+    validations:
+      required: false

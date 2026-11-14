@@ -1,0 +1,16 @@
+title: ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > Keep posts free of internal or sensitive data — private paths,
+        > proprietary details, secrets, customer info. Discussions are public.
+        >
+        > For usage questions use **Q&A**; for feature ideas use **Ideas**.
+  - type: textarea
+    id: body
+    attributes:
+      label: What's on your mind?
+    validations:
+      required: true
